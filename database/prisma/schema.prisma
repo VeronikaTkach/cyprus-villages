@@ -7,5 +7,5 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Domain models will be defined here in subsequent steps:
+// Domain models will be defined here in Stage 3+:
 // Village, Festival, FestivalEdition, LocationPoint, Media, User, AuditLog

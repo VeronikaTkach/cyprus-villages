@@ -7,10 +7,18 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
-    "typecheck": "turbo run typecheck"
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\" --ignore-path .gitignore",
+    "db:generate": "prisma generate --schema=database/prisma/schema.prisma",
+    "db:migrate": "prisma migrate dev --schema=database/prisma/schema.prisma",
+    "db:studio": "prisma studio --schema=database/prisma/schema.prisma",
+    "db:seed": "ts-node database/prisma/seed/index.ts"
   },
   "devDependencies": {
     "turbo": "^2.0.0",
-    "typescript": "^5.4.0"
+    "typescript": "^5.4.0",
+    "prettier": "^3.3.0",
+    "prisma": "^5.16.0"
   }
 }

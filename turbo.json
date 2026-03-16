@@ -10,7 +10,15 @@
       "cache": false,
       "persistent": true
     },
-    "lint": {},
-    "typecheck": {}
+    "lint": {
+      "outputs": []
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"],
+      "outputs": []
+    },
+    "test": {
+      "outputs": []
+    }
   }
 }
