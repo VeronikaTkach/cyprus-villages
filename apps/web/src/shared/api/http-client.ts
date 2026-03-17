@@ -1,4 +1,4 @@
-import { appConfig } from '@/app/config';
+import { appConfig } from '@/shared/config';
 
 export async function httpGet<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${appConfig.apiUrl}${path}`, {

@@ -3,6 +3,7 @@
 import { MantineProvider } from '@mantine/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
+import { theme } from '../config/theme';
 
 interface IProvidersProps {
   children: React.ReactNode;
@@ -23,7 +24,9 @@ export function Providers({ children }: IProvidersProps) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <MantineProvider>{children}</MantineProvider>
+      <MantineProvider theme={theme} defaultColorScheme="light">
+        {children}
+      </MantineProvider>
     </QueryClientProvider>
   );
 }

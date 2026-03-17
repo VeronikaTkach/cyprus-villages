@@ -5,8 +5,11 @@ import { Providers } from './providers/providers';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Cyprus Villages',
-  description: 'Festival calendar for Cyprus villages',
+  title: {
+    template: '%s | Cyprus Villages',
+    default: 'Cyprus Villages',
+  },
+  description: 'Festival calendar and guide for traditional Cypriot villages',
 };
 
 export default function RootLayout({
@@ -17,7 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <ColorSchemeScript />
+        <ColorSchemeScript defaultColorScheme="light" />
       </head>
       <body>
         <Providers>{children}</Providers>
