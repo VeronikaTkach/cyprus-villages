@@ -16,9 +16,10 @@
     "db:seed": "ts-node database/prisma/seed/index.ts"
   },
   "devDependencies": {
-    "turbo": "^2.0.0",
-    "typescript": "^5.4.0",
+    "@prisma/client": "^7",
     "prettier": "^3.3.0",
-    "prisma": "^5.16.0"
+    "prisma": "^7.5.0",
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.0"
   }
 }

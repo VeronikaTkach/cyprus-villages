@@ -12,10 +12,10 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
-    "@mantine/core": "^7.13.0",
-    "@mantine/dates": "^7.13.0",
-    "@mantine/form": "^7.13.0",
-    "@mantine/hooks": "^7.13.0",
+    "@mantine/core": "^8.3.18",
+    "@mantine/dates": "^8.3.18",
+    "@mantine/form": "^8.3.18",
+    "@mantine/hooks": "^8.3.18",
     "@tabler/icons-react": "^3.19.0",
     "@tanstack/react-query": "^5.55.0",
     "clsx": "^2.1.0",
@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "@types/leaflet": "^1.9.0",
-    "@types/node": "^22.19.15",
+    "@types/node": "^24.12.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "eslint": "^9.39.4",
