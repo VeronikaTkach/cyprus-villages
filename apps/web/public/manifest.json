@@ -1,0 +1,13 @@
+{
+  "name": "Cyprus Villages",
+  "short_name": "Cyprus Villages",
+  "description": "Festival calendar and guide for traditional Cypriot villages",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#12b886",
+  "orientation": "portrait-primary",
+  "lang": "en",
+  "icons": []
+}

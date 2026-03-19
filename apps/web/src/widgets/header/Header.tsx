@@ -51,12 +51,13 @@ export function Header() {
         </Group>
       </AppShell.Header>
 
+      {/* Mobile nav drawer — only triggered on small screens via the burger */}
       <Drawer
         opened={opened}
         onClose={close}
         title="Menu"
         size="xs"
-        hiddenFrom="sm"
+        position="left"
       >
         {publicNavItems.map((item) => (
           <NavLink
