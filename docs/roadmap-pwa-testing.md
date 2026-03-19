@@ -70,7 +70,7 @@ Both tracks are designed to evolve in phases. Nothing here should be implemented
 - No integration tests
 - No end-to-end tests
 - No test infrastructure (test runner, testing libraries, mocks, fixtures)
-- No CI pipeline
+- No automated CI for lint, typecheck, or tests
 - No PWA-specific test coverage
 - No platform detection layer beyond the Telegram bridge stub
 
@@ -139,7 +139,7 @@ This phase adds meaningful offline capabilities and optionally push notification
 
 **What belongs here:**
 
-- Service worker implementation — recommended via `next-pwa` or a custom Workbox configuration
+- Service worker implementation — via dedicated PWA/service worker tooling or a Workbox-based strategy; the specific approach should be chosen at implementation time
 - Runtime caching strategy: choose a strategy per resource type
   - festival and village list pages: stale-while-revalidate
   - map tiles: cache-first with expiry
@@ -189,7 +189,7 @@ The goal of this phase is to have a working test infrastructure, not high covera
 - First tests on shared utilities: `shared/config`, `shared/lib`, `shared/i18n`, `shared/hooks`
 - Entity model tests: pure transformation or selector logic
 - Component tests for shared/ui: does the component render, does it respond to props
-- CI integration: tests run on every pull request
+- CI integration: lint, typecheck, and unit tests run automatically on every pull request (test execution CI, not a deployment pipeline)
 
 **What does not belong here yet:**
 
@@ -216,7 +216,7 @@ The goal of this phase is to cover the primary user journeys on the web applicat
 - Tests for the primary public flows: home page, festival list, festival detail, village page
 - Basic admin flow tests: login, create entry, publish
 - Mobile viewport tests: run the same flows at 390px width to catch mobile breakage
-- CI integration: E2E tests run on staging environment before production deployment
+- CI integration: E2E tests run automatically as part of the test pipeline; staging environment integration can be added once a deployment pipeline exists
 
 **What does not belong here yet:**
 
@@ -317,7 +317,7 @@ The following items are explicitly out of scope for the near term. Adding them b
 - Separate Mini App UI codebase — the architecture decision is clear: one domain, one API, one shared layer; Mini App UI extends from the same base rather than duplicating it
 
 **Infrastructure**
-- CI/CD deployment pipeline — important but dependent on hosting decisions not yet made
+- CI/CD deployment pipeline — full deployment automation remains postponed; it depends on hosting decisions not yet made. Automated test execution (lint, typecheck, unit tests, E2E) is a separate concern and is planned within the testing phases above — it can be introduced much earlier
 - Monitoring and error tracking — relevant post-launch, not during MVP development
 
 ---
