@@ -6,5 +6,315 @@ datasource db {
   provider = "postgresql"
 }
 
-// Domain models will be defined here in Stage 3+:
-// Village, Festival, FestivalEdition, LocationPoint, Media, User, AuditLog
+// ─────────────────────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────────────────────
+
+enum FestivalCategory {
+  WINE
+  FOOD
+  CULTURAL
+  RELIGIOUS
+  MUSIC
+  ARTS
+  SPORT
+  OTHER
+}
+
+enum FestivalEditionStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  CANCELLED
+}
+
+enum LocationPointType {
+  PARKING
+  VENUE
+  MEETING_POINT
+  WC
+  SHUTTLE
+  VIEWPOINT
+  OTHER
+}
+
+enum MediaKind {
+  IMAGE
+  COVER
+  THUMBNAIL
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  CONTENT_ADMIN
+  EDITOR
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  PUBLISH
+  ARCHIVE
+  CANCEL
+}
+
+// ─────────────────────────────────────────────────────────────
+// VILLAGE
+// A long-lived geographic and cultural entity.
+// Festivals belong to villages; location points and media can reference villages.
+// ─────────────────────────────────────────────────────────────
+
+model Village {
+  id          Int     @id @default(autoincrement())
+  slug        String  @unique
+
+  // Multilingual names — inline fields for MVP1
+  nameEn      String
+  nameRu      String?
+  nameEl      String?
+
+  // Multilingual descriptions — optional
+  descriptionEn String? @db.Text
+  descriptionRu String? @db.Text
+  descriptionEl String? @db.Text
+
+  // Administrative geography
+  district    String?
+  region      String?
+
+  // Base geographic center of the village
+  centerLat   Float?
+  centerLng   Float?
+
+  // Visibility / lifecycle
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  festivals      Festival[]
+  locationPoints LocationPoint[]
+  media          Media[]
+
+  @@index([isActive])
+  @@index([district])
+  @@index([region])
+}
+
+// ─────────────────────────────────────────────────────────────
+// FESTIVAL
+// The recurring festival concept/brand, not a single event.
+// One Festival can have many FestivalEditions (one per year).
+// ─────────────────────────────────────────────────────────────
+
+model Festival {
+  id        Int              @id @default(autoincrement())
+  slug      String           @unique
+  villageId Int
+
+  // Multilingual titles
+  titleEn   String
+  titleRu   String?
+  titleEl   String?
+
+  // Multilingual short descriptions
+  shortDescriptionEn String? @db.Text
+  shortDescriptionRu String? @db.Text
+  shortDescriptionEl String? @db.Text
+
+  category  FestivalCategory @default(OTHER)
+
+  // Visibility / lifecycle
+  isActive  Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  village  Village          @relation(fields: [villageId], references: [id])
+  editions FestivalEdition[]
+  media    Media[]
+
+  @@index([villageId])
+  @@index([isActive])
+  @@index([category])
+}
+
+// ─────────────────────────────────────────────────────────────
+// FESTIVAL EDITION
+// A concrete yearly instance of a Festival.
+// This is the central scheduling and publishing entity.
+// ─────────────────────────────────────────────────────────────
+
+model FestivalEdition {
+  id         Int    @id @default(autoincrement())
+  festivalId Int
+  year       Int
+
+  // Dates — nullable when isDateTba is true
+  startDate  DateTime?
+  endDate    DateTime?
+  isDateTba  Boolean   @default(false)
+
+  // Times stored as "HH:mm" strings — timezone assumed local Cyprus (EET/EEST)
+  startTime  String?
+  endTime    String?
+
+  // Publication lifecycle
+  status      FestivalEditionStatus @default(DRAFT)
+  publishedAt DateTime?
+  lastVerifiedAt DateTime?
+
+  // Primary venue — denormalised for quick access
+  // Additional points live in LocationPoint
+  venueName   String?
+  venueLat    Float?
+  venueLng    Float?
+
+  // Primary parking — denormalised for quick access
+  parkingName String?
+  parkingLat  Float?
+  parkingLng  Float?
+
+  // Source tracking
+  officialUrl String?
+  sourceUrl   String?
+  sourceNote  String? @db.Text
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  festival       Festival        @relation(fields: [festivalId], references: [id])
+  locationPoints LocationPoint[]
+  media          Media[]
+
+  // Each festival can have at most one edition per year
+  @@unique([festivalId, year])
+
+  @@index([festivalId])
+  @@index([status])
+  @@index([year])
+  @@index([startDate])
+}
+
+// ─────────────────────────────────────────────────────────────
+// LOCATION POINT
+// A geographic point of interest related to a village or a festival edition.
+// Both foreign keys are optional — a point may relate to one or both.
+// ─────────────────────────────────────────────────────────────
+
+model LocationPoint {
+  id                Int               @id @default(autoincrement())
+  type              LocationPointType
+  label             String
+
+  lat               Float
+  lng               Float
+
+  note              String?
+
+  // A point can be tied to a village, a festival edition, or both
+  villageId         Int?
+  festivalEditionId Int?
+
+  isActive          Boolean  @default(true)
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  village         Village?         @relation(fields: [villageId], references: [id])
+  festivalEdition FestivalEdition? @relation(fields: [festivalEditionId], references: [id])
+
+  @@index([villageId])
+  @@index([festivalEditionId])
+  @@index([type])
+  @@index([isActive])
+}
+
+// ─────────────────────────────────────────────────────────────
+// MEDIA
+// Uploaded image metadata. Multiple nullable FKs allow
+// attaching media to any entity type without a separate join table per entity.
+// ─────────────────────────────────────────────────────────────
+
+model Media {
+  id     Int       @id @default(autoincrement())
+  url    String
+  alt    String?
+  width  Int?
+  height Int?
+  kind   MediaKind @default(IMAGE)
+
+  // Nullable attachment targets — at most one should be set per record
+  villageId         Int?
+  festivalId        Int?
+  festivalEditionId Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  village         Village?         @relation(fields: [villageId], references: [id])
+  festival        Festival?        @relation(fields: [festivalId], references: [id])
+  festivalEdition FestivalEdition? @relation(fields: [festivalEditionId], references: [id])
+
+  @@index([villageId])
+  @@index([festivalId])
+  @@index([festivalEditionId])
+  @@index([kind])
+}
+
+// ─────────────────────────────────────────────────────────────
+// USER
+// Minimal admin user — present for AuditLog relations.
+// Auth fields (passwordHash, tokens) are added when auth is implemented.
+// ─────────────────────────────────────────────────────────────
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  role      UserRole @default(EDITOR)
+  isActive  Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  auditLogs AuditLog[]
+
+  @@index([role])
+  @@index([isActive])
+}
+
+// ─────────────────────────────────────────────────────────────
+// AUDIT LOG
+// Immutable record of admin actions on any entity.
+// beforeJson / afterJson capture state snapshots for rollback/review.
+// userId is nullable to support future system-initiated actions.
+// ─────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id         Int         @id @default(autoincrement())
+  entityType String      // e.g. "Village", "Festival", "FestivalEdition"
+  entityId   Int
+  action     AuditAction
+  beforeJson Json?
+  afterJson  Json?
+
+  // Nullable: system-initiated actions may not have a user
+  userId     Int?
+  user       User?       @relation(fields: [userId], references: [id])
+
+  createdAt  DateTime    @default(now())
+  // No updatedAt — audit logs are immutable
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([action])
+}
