@@ -38,10 +38,13 @@ enum LocationPointType {
   OTHER
 }
 
+// MediaKind describes the presentation role of a media asset, not its file type.
+// All values are role-oriented so the purpose of each record is unambiguous.
+// MVP1: only image files are supported; kind determines how the image is used.
 enum MediaKind {
-  IMAGE
-  COVER
-  THUMBNAIL
+  GALLERY    // General inline image — gallery, body content, additional photos
+  COVER      // Primary hero / cover image for a page or listing
+  THUMBNAIL  // Compact preview used in cards or listing views
 }
 
 enum UserRole {
@@ -50,10 +53,15 @@ enum UserRole {
   EDITOR
 }
 
+// AuditAction tracks what happened to an entity.
+// DELETE is kept intentionally: hard delete is not the primary business path
+// (archive/deactivate is preferred), but it can occur for technical or admin
+// reasons such as data-entry mistakes or duplicate records.
+// Any hard delete must be logged here so the audit trail remains intact.
 enum AuditAction {
   CREATE
   UPDATE
-  DELETE
+  DELETE   // Rare: technical/admin removal only; prefer ARCHIVE for business flows
   PUBLISH
   ARCHIVE
   CANCEL
@@ -158,7 +166,11 @@ model FestivalEdition {
   endDate    DateTime?
   isDateTba  Boolean   @default(false)
 
-  // Times stored as "HH:mm" strings — timezone assumed local Cyprus (EET/EEST)
+  // Times stored as "HH:mm" strings (e.g. "18:00").
+  // Intentional MVP1 simplification: Cyprus festivals are local-time events.
+  // All times are assumed to be Cyprus local time (EET/EEST, UTC+2/+3).
+  // No UTC conversion is needed at this stage — times are display-only.
+  // If cross-timezone scheduling is ever required, add a timestamptz field then.
   startTime  String?
   endTime    String?
 
@@ -202,8 +214,21 @@ model FestivalEdition {
 
 // ─────────────────────────────────────────────────────────────
 // LOCATION POINT
-// A geographic point of interest related to a village or a festival edition.
-// Both foreign keys are optional — a point may relate to one or both.
+// A geographic point of interest. Both foreign keys are optional and
+// independently nullable — this is intentional. Three valid ownership states:
+//
+//   villageId only       — permanent village landmark (viewpoint, WC, etc.)
+//                          visible on the village page and map at all times.
+//
+//   festivalEditionId only — temporary point specific to one festival edition
+//                            (temporary stage, shuttle stop, event-only parking).
+//
+//   both set             — a permanent village point that also serves as a
+//                          festival edition point (e.g. the village car park
+//                          repurposed as festival parking). Appears on both the
+//                          village map and the edition detail page.
+//
+// An orphan row (both null) should not exist; enforce at service level.
 // ─────────────────────────────────────────────────────────────
 
 model LocationPoint {
@@ -216,7 +241,6 @@ model LocationPoint {
 
   note              String?
 
-  // A point can be tied to a village, a festival edition, or both
   villageId         Int?
   festivalEditionId Int?
 
@@ -237,8 +261,19 @@ model LocationPoint {
 
 // ─────────────────────────────────────────────────────────────
 // MEDIA
-// Uploaded image metadata. Multiple nullable FKs allow
-// attaching media to any entity type without a separate join table per entity.
+// Uploaded image metadata. Three nullable foreign keys allow attaching a media
+// record to any entity type without a separate join table per entity.
+//
+// OWNERSHIP INVARIANT (enforced at service layer):
+//   Each Media row must have exactly one FK set — it belongs to exactly one
+//   parent: a Village, a Festival, or a FestivalEdition.
+//   Having zero or more than one FK set is invalid and must be rejected by the
+//   service before writing. Prisma cannot express this as a DB-level constraint;
+//   it is a service-level rule. See docs/architecture.md § Schema design decisions.
+//
+//   Rationale: media assets are not shared or reused across entities in MVP1.
+//   If asset reuse becomes a requirement, a many-to-many join table is the
+//   correct solution — not relaxing the single-owner rule.
 // ─────────────────────────────────────────────────────────────
 
 model Media {
@@ -247,9 +282,9 @@ model Media {
   alt    String?
   width  Int?
   height Int?
-  kind   MediaKind @default(IMAGE)
+  kind   MediaKind @default(GALLERY)
 
-  // Nullable attachment targets — at most one should be set per record
+  // Exactly one of these must be non-null — see ownership invariant above
   villageId         Int?
   festivalId        Int?
   festivalEditionId Int?

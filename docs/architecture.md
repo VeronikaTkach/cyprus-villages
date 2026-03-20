@@ -418,6 +418,56 @@ GET    /api/v1/admin/audit-log
 
 ---
 
+## Schema design decisions
+
+This section documents intentional design choices in the Prisma schema that are not obvious from the model structure alone. These decisions must be respected by future migrations and service implementations.
+
+### Media single-owner invariant
+
+`Media` has three nullable foreign keys: `villageId`, `festivalId`, `festivalEditionId`.
+
+**Invariant:** each `Media` row must have exactly one FK set. A media asset belongs to exactly one parent entity.
+
+Prisma and PostgreSQL can express this with a CHECK constraint, but Prisma does not support CHECK constraints in schema.prisma. The invariant is enforced at the service layer — any service that creates or updates a `Media` record must validate that exactly one FK is non-null before writing.
+
+If asset reuse across multiple entities becomes a requirement in the future, the correct solution is a many-to-many junction table, not relaxing this invariant.
+
+### LocationPoint dual ownership
+
+`LocationPoint` has two nullable FKs: `villageId` and `festivalEditionId`. Having both set simultaneously is intentional.
+
+Three valid ownership states:
+- `villageId` only — a permanent village landmark (viewpoint, public WC, etc.), shown on the village map at all times.
+- `festivalEditionId` only — a temporary point specific to one edition (shuttle stop, event-only barrier, etc.).
+- both set — a permanent village point that is also used as a festival edition point (e.g. the village main car park repurposed as festival parking). Shown on both the village map and the edition detail page.
+
+An orphan row (both null) is invalid and must be rejected at the service layer.
+
+### MediaKind is a presentation role enum
+
+`MediaKind` values (`GALLERY`, `COVER`, `THUMBNAIL`) describe the presentation role of a media asset, not its file type. All values are role-oriented.
+
+This is intentional for MVP1 where only image files are supported. If other file types (PDF, video) are added later, the kind system should be reviewed separately.
+
+### AuditAction.DELETE is intentionally kept
+
+The general product rule is to prefer archive/deactivate over hard delete. However, `DELETE` is kept in `AuditAction` because hard deletes can occur for legitimate technical or admin reasons (data-entry mistakes, GDPR erasure, duplicate records).
+
+Any hard delete must be logged using `AuditAction.DELETE` so the audit trail remains intact. `DELETE` in the audit log does not imply that hard delete is an approved business flow — it is the log entry for an exceptional action.
+
+### Time fields as "HH:mm" strings
+
+`FestivalEdition.startTime` and `endTime` are stored as plain `String` in `"HH:mm"` format.
+
+This is an intentional MVP1 simplification:
+- Cyprus festivals are local-time events with no cross-timezone scheduling requirements.
+- All times are assumed to be Cyprus local time (EET/EEST, UTC+2/UTC+3).
+- Times are display-oriented, not used for timestamp arithmetic.
+
+If cross-timezone support or calendar integration is required in the future, a `timestamptz` field should be added. The string fields can remain for display convenience.
+
+---
+
 ## Localization strategy
 На первом этапе желательно проектировать данные под будущую локализацию.
 
