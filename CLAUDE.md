@@ -1,82 +1,106 @@
 # CLAUDE.md
 
 ## Project
-Cyprus Villages — приложение с календарём фестивалей в кипрских деревнях.
 
-Цель MVP1: веб-приложение с публичной частью и админ-панелью.
-Цель MVP2: Telegram Mini App на той же доменной модели и API.
+Cyprus Villages — an application with a calendar of festivals in Cypriot villages.
+
+**MVP1:** Web app (public + admin)
+**MVP2:** Telegram Mini App using the same domain model and API
+
+---
 
 ## Product context
-Приложение должно позволять:
-- просматривать фестивали по месяцам, деревням, регионам и категориям;
-- открывать страницу фестиваля с датой, описанием, координатами, парковкой и ссылками на источник;
-- открывать страницу деревни со списком фестивалей и картой;
-- редактировать данные через admin panel;
-- поддерживать неполные записи, например `TBA` вместо точной даты;
-- сохранять историю изменений и избегать жёсткого удаления данных.
+
+The application should allow users to:
+
+* browse festivals by month, village, region, and category;
+* view festival details (date, description, coordinates, parking, sources);
+* view village pages with festival lists and a map;
+* manage data via admin panel;
+* support incomplete data (`TBA`);
+* keep change history and avoid hard deletes.
+
+---
 
 ## Core business entities
-Основные сущности:
-- Village
-- Festival
-- FestivalEdition
-- LocationPoint
-- Media
-- User
-- AuditLog
 
-### Domain rules
-1. Один `Festival` — это постоянная сущность, например бренд фестиваля.
-2. Один `FestivalEdition` — это выпуск фестиваля в конкретном году.
-3. Даты, парковка, venue, source URL, статус публикации должны храниться на уровне `FestivalEdition`.
-4. Деревни и фестивали не удаляются физически без крайней необходимости; использовать soft delete / archive.
-5. Должен поддерживаться статус `TBA` для неизвестной даты.
-6. Координаты хранить отдельными числовыми полями, не только строковым адресом.
-7. Любые административные изменения, влияющие на публичные данные, по возможности логировать в `AuditLog`.
+* Village
+* Festival
+* FestivalEdition
+* LocationPoint
+* Media
+* User
+* AuditLog
 
-## Architecture decisions
-- Monorepo.
-- `apps/web` — Next.js приложение, публичная часть + admin panel.
-- `apps/api` — NestJS API.
-- `database/prisma` — Prisma schema, migrations, seed.
-- `packages/*` — shared types, constants, schemas, config.
-- UI library: **Mantine**.
-- Data fetching: **TanStack Query**.
-- Forms: **react-hook-form + zod**.
-- Maps: **Leaflet**.
-- Database: **PostgreSQL**.
-- ORM: **Prisma**.
+---
 
-## Frontend rules
-Frontend должен быть организован по **FSD**.
+## Domain rules
 
-### Required layers
-- `app`
-- `pages`
-- `widgets`
-- `features`
-- `entities`
-- `shared`
+1. `Festival` = persistent entity (brand).
+2. `FestivalEdition` = specific occurrence (year-based).
+3. Date, venue, parking, source URL, status → stored in `FestivalEdition`.
+4. Use soft delete / archive by default.
+5. Support `TBA` for unknown dates.
+6. Store coordinates as numeric fields.
+7. Log admin changes in `AuditLog` when possible.
 
-### Frontend constraints
-1. Не смешивать бизнес-логику разных слоёв.
-2. Не импортировать компоненты Mantine напрямую во всех местах без необходимости; предпочитать обёртки через `shared/ui`.
-3. Не размещать API-запросы внутри UI-компонентов, если это можно вынести в `entities/*/api` или `shared/api`.
-4. Не складывать все типы в один глобальный файл.
-5. Любая Telegram-специфика должна находиться в `shared/lib/telegram` или в отдельном bridge/provider, а не быть размазана по приложению.
-6. Публичная часть и админка должны иметь отдельные layout, но использовать общие сущности и shared-слой.
-7. Сразу проектировать UI mobile-first, чтобы позже безболезненно вынести Mini App.
+---
+
+## Architecture
+
+* Monorepo
+* `apps/web` — Next.js (public + admin)
+* `apps/api` — NestJS
+* `database/prisma` — schema, migrations, seed
+* `packages/*` — shared types/config/schemas
+* UI: **Mantine**
+* Data: **TanStack Query**
+* Forms: **react-hook-form + zod**
+* Maps: **Leaflet**
+* DB: **PostgreSQL**
+* ORM: **Prisma**
+
+---
+
+## Frontend architecture (FSD)
+
+Layers:
+
+* `app`
+* `pages`
+* `widgets`
+* `features`
+* `entities`
+* `shared`
+
+### Rules
+
+1. Do not mix business logic across layers.
+2. Keep API calls outside UI (`entities/*/api`, `shared/api`).
+3. Use `shared` only for reusable, domain-agnostic code.
+4. Do not place domain logic (`Festival`, `Village`) in `shared`.
+5. Avoid deep imports; use public APIs (`index.ts`).
+6. Avoid circular dependencies.
+7. Separate layouts for public/admin, reuse entities/shared.
+8. Design mobile-first.
+9. Keep Telegram logic isolated (`shared/lib/telegram`).
+
+---
 
 ## Backend rules
-1. Backend строить модульно по доменам.
-2. Разделять public API и admin API.
-3. DTO и валидация обязательны для входных данных.
-4. Не писать SQL/Prisma-запросы хаотично по коду; доступ к данным держать в сервисах/репозиториях.
-5. Для публичных сущностей поддерживать статусы: `draft`, `published`, `archived`, `cancelled`.
-6. Для удаления по умолчанию использовать soft delete или archive strategy.
-7. Swagger/OpenAPI должен поддерживаться для API.
 
-## Expected repository layout
+1. Structure by domain modules.
+2. Separate public and admin APIs.
+3. Use DTOs + validation for all inputs.
+4. Keep DB access in services/repositories.
+5. Support statuses: `draft`, `published`, `archived`, `cancelled`.
+6. Use soft delete / archive.
+7. Maintain Swagger/OpenAPI.
+
+---
+
+## Repository structure
+
 ```text
 apps/
   web/
@@ -98,67 +122,142 @@ docs/
   database/
 ```
 
-## Coding standards
-- TypeScript everywhere where possible.
-- Для type aliases использовать префикс `T`.
-- Для interfaces использовать префикс `I`.
-- Не создавать огромные файлы-комбайны.
-- Предпочитать маленькие, читаемые функции.
-- Придерживаться явных названий: `FestivalEditionStatus`, `VillageCard`, `UpdateFestivalEditionDto`.
-- Избегать magic strings; выносить константы и enum-like values.
-- Писать код так, чтобы его было легко переиспользовать в web и future mini app.
+---
 
-## What Claude Code should do by default
-Когда работаешь с этим проектом:
-1. Сначала анализируй текущую структуру и не ломай выбранную архитектуру.
-2. Предлагай изменения в существующем стиле проекта.
-3. Если добавляешь новую фичу, сразу раскладывай её по FSD-слоям.
-4. Если изменяешь доменную модель, проверь влияние на:
-   - Prisma schema
-   - DTO
-   - shared types
-   - frontend entities
-   - admin forms
-5. Если создаёшь новые файлы, используй понятные и консистентные имена.
-6. Если есть неоднозначность, выбирай решение, которое проще масштабируется под mini app.
-7. Не добавляй тяжёлые зависимости без причины.
-8. Не переусложняй MVP.
+## Coding standards
+
+* TypeScript everywhere
+* `T` for types, `I` for interfaces
+* Small, focused files and functions
+* Explicit naming (`FestivalEditionStatus`, etc.)
+* Avoid magic strings (use constants)
+* Code must be reusable for web + mini app
+
+---
+
+## API and naming rules
+
+1. Prefer additive API changes (avoid breaking).
+2. Keep response shape stable once used.
+3. Use consistent naming: `create`, `update`, `archive`, `getById`, `getList`.
+4. Use explicit booleans (`isPublished`, `hasParking`).
+5. Avoid vague names (`data`, `item`, `value`).
+6. Align validation between backend and frontend.
+
+---
+
+## Performance rules
+
+1. Avoid N+1 queries.
+2. Fetch only required fields (explicit select/include).
+3. Separate list vs detail queries.
+4. Add pagination/filtering for admin early.
+
+---
+
+## Incomplete data handling
+
+1. Support incomplete records explicitly (`TBA`, nullable fields).
+2. Do not assume exact dates always exist.
+3. Preserve source links even if data is partial.
+4. Distinguish missing vs confirmed negative data.
+
+---
+
+## Admin panel rules
+
+1. Forms must map directly to domain + DTOs.
+2. Avoid admin-only data structures when possible.
+3. Support draft/incomplete content.
+4. Make destructive actions explicit (archive/publish).
+5. Ensure audit traceability.
+
+---
+
+## Localization rules
+
+1. Avoid hardcoded UI strings.
+2. Keep all texts localization-ready.
+3. Store domain data language-agnostic where possible.
+4. Use stable translation keys.
+
+---
+
+## Change safety rules
+
+1. Identify affected layers before changes.
+2. Do not silently rename widely used fields.
+3. Prefer deprecation over removal.
+4. Document schema/migration impact.
+5. Avoid irreversible data changes without confirmation.
+
+---
+
+## Documentation rules
+
+1. Document non-obvious decisions in `docs/architecture/`.
+2. Document invariants not enforced by DB.
+3. Mark MVP simplifications explicitly.
+4. Keep docs aligned with code.
+
+---
+
+## What Claude Code should do
+
+1. Preserve architecture and project style.
+2. Place new logic in correct FSD layers.
+3. Check impact of domain changes (schema, DTOs, types, UI).
+4. Use consistent naming.
+5. Prefer scalable solutions (Mini App ready).
+6. Avoid unnecessary dependencies.
+7. Keep solutions simple (MVP-first).
+
+---
 
 ## What Claude Code should avoid
-- Не переносить бизнес-логику в `shared`, если она относится к конкретной сущности.
-- Не смешивать `Festival` и `FestivalEdition`.
-- Не хранить дату фестиваля только строкой без нормализованного поля.
-- Не реализовывать удаление через hard delete без отдельной причины.
-- Не строить админку отдельно от общей доменной модели.
-- Не дублировать типы между frontend и backend, если можно вынести их в `packages`.
-- Не создавать UI с сильной зависимостью только от desktop-сценария.
+
+* Mixing `Festival` and `FestivalEdition`
+* Moving domain logic into `shared`
+* Hard deletes without reason
+* Storing dates only as strings
+* Duplicating types across layers
+* Separating admin from domain model
+* Desktop-only UI assumptions
+
+---
 
 ## Preferred implementation order
-1. Repository scaffolding.
-2. Web app initialization.
-3. API initialization.
-4. Prisma setup.
-5. Mantine + base layouts.
-6. Domain schema: Village, Festival, FestivalEdition, LocationPoint.
-7. Admin CRUD for Villages.
-8. Admin CRUD for Festivals and Editions.
-9. Public festival list and details.
-10. Map integration.
-11. Localization.
-12. Telegram bridge preparation.
 
-## Definition of done for any task
-Задача считается завершённой, если:
-- код соответствует архитектуре;
-- типы и валидация не сломаны;
-- новые файлы лежат в правильных слоях;
-- нет явного дублирования;
-- сохранена готовность к будущему Telegram Mini App;
-- обновлены связанные типы/схемы/DTO, если это требовалось.
+1. Repository setup
+2. Web app
+3. API
+4. Prisma
+5. Base UI/layouts
+6. Domain schema
+7. Admin CRUD (Village)
+8. Admin CRUD (Festival + Edition)
+9. Public pages
+10. Map
+11. Localization
+12. Telegram bridge
 
-## Schema and data model rules
-1. Не создавать модели с неоднозначным владением данными. Если модель допускает несколько интерпретаций (например, несколько опциональных FK), задокументируй intended invariant в schema.prisma-комментарии и в `docs/architecture.md § Schema design decisions`.
-2. Если Prisma не может выразить инвариант на уровне БД, задокументируй его явно как service-level rule. Не оставлять его неявным.
-3. Намеренные упрощения MVP (например, строка вместо timestamp, inline поля вместо translation tables) должны быть задокументированы с объяснением — чтобы будущий рефакторинг был осознанным решением, а не случайным обнаружением.
-4. Не делать коммит изменений схемы без явной просьбы пользователя.
-5. При изменении схемы всегда проверять влияние на: Prisma client, API DTOs, shared types, frontend entities.
+---
+
+## Definition of done
+
+* Architecture respected
+* Types and validation intact
+* Files placed correctly
+* No duplication
+* Mini App readiness preserved
+* Related layers updated
+
+---
+
+## Schema rules
+
+1. Avoid ambiguous ownership in models.
+2. Document invariants (Prisma + docs).
+3. Document MVP simplifications.
+4. Do not change schema without explicit request.
+5. Check impact on all layers when modifying schema.
