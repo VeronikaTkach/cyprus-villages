@@ -25,8 +25,8 @@ Cyprus has hundreds of villages, each with its own festivals, wine celebrations,
 | | |
 |---|---|
 | Framework | [Next.js 16](https://nextjs.org) — App Router, SSR/ISR |
-| Language | TypeScript |
-| UI Library | [Mantine 7](https://mantine.dev) |
+| Language | TypeScript + React 19 |
+| UI Library | [Mantine 8](https://mantine.dev) |
 | Data Fetching | [TanStack Query 5](https://tanstack.com/query) |
 | Forms | [React Hook Form 7](https://react-hook-form.com) + [Zod 4](https://zod.dev) |
 | State | [Zustand 5](https://zustand-demo.pmnd.rs) |
@@ -36,9 +36,9 @@ Cyprus has hundreds of villages, each with its own festivals, wine celebrations,
 ### Backend — `apps/api`
 | | |
 |---|---|
-| Framework | [NestJS 10](https://nestjs.com) |
+| Framework | [NestJS 11](https://nestjs.com) |
 | Language | TypeScript |
-| ORM | [Prisma 5](https://www.prisma.io) |
+| ORM | [Prisma 7](https://www.prisma.io) |
 | Database | PostgreSQL |
 | Validation | class-validator + class-transformer |
 | API Docs | Swagger / OpenAPI |
@@ -47,7 +47,7 @@ Cyprus has hundreds of villages, each with its own festivals, wine celebrations,
 | | |
 |---|---|
 | Monorepo | [pnpm workspaces](https://pnpm.io/workspaces) + [Turborepo](https://turbo.build) |
-| Node | 22 LTS |
+| Node | 24 LTS |
 | Local DB | Docker Compose |
 
 ---
@@ -70,6 +70,8 @@ infra/
   env/          # .env examples
 docs/
   architecture.md
+  stack-decisions.md
+  roadmap-pwa-testing.md
 ```
 
 ---
@@ -77,7 +79,7 @@ docs/
 ## Getting Started
 
 ### Prerequisites
-- Node.js 22 LTS (`nvm use`)
+- Node.js 24 LTS (`nvm use`)
 - pnpm 9+
 - Docker (for local PostgreSQL)
 

@@ -45,10 +45,9 @@ infra/
   docker/             # Dockerfiles / nginx
   env/                # .env examples
 docs/
-  architecture/
-  api/
-  database/
-  product/
+  architecture.md
+  stack-decisions.md
+  roadmap-pwa-testing.md
 ```
 
 ---
@@ -56,19 +55,19 @@ docs/
 ## Technology stack
 
 ### Frontend
-- **Next.js**
-- **TypeScript**
-- **Mantine**
-- **TanStack Query**
-- **react-hook-form**
-- **zod**
-- **Leaflet / react-leaflet**
+- **Next.js 16** (App Router)
+- **TypeScript** + React 19
+- **Mantine 8**
+- **TanStack Query 5**
+- **react-hook-form 7** + **zod 4**
+- **Zustand 5**
+- **Leaflet / react-leaflet 5**
 - **next-intl** or equivalent i18n layer later
 
 ### Backend
-- **NestJS**
+- **NestJS 11**
 - **TypeScript**
-- **Prisma**
+- **Prisma 7**
 - **PostgreSQL**
 - **class-validator / class-transformer**
 - **Swagger / OpenAPI**
@@ -76,6 +75,7 @@ docs/
 ### Infrastructure
 - **pnpm workspace**
 - **Turborepo**
+- **Node 24 LTS**
 - **Docker Compose** for local Postgres
 - later: CI/CD and deployment configs
 
@@ -125,7 +125,6 @@ docs/
 - `region`
 - `descriptionEn`, `descriptionRu`, `descriptionEl`
 - `centerLat`, `centerLng`
-- `heroImageId`
 - `isActive`
 - `createdAt`, `updatedAt`
 
