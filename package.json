@@ -13,13 +13,21 @@
     "db:generate": "prisma generate --schema=database/prisma/schema.prisma",
     "db:migrate": "prisma migrate dev --schema=database/prisma/schema.prisma",
     "db:studio": "prisma studio --schema=database/prisma/schema.prisma",
-    "db:seed": "ts-node database/prisma/seed/index.ts"
+    "db:seed": "tsx database/prisma/seed/index.ts"
+  },
+  "prisma": {
+    "seed": "tsx database/prisma/seed/index.ts"
   },
   "devDependencies": {
     "@prisma/client": "^7",
     "prettier": "^3.3.0",
     "prisma": "^7.5.0",
+    "tsx": "^4.21.0",
     "turbo": "^2.0.0",
     "typescript": "^5.4.0"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.5.0",
+    "pg": "^8.20.0"
   }
 }
