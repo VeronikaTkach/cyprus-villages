@@ -96,6 +96,7 @@ Layers:
 5. Support statuses: `draft`, `published`, `archived`, `cancelled`.
 6. Use soft delete / archive.
 7. Maintain Swagger/OpenAPI.
+8. Never instantiate `PrismaClient` directly — always use the injected `PrismaService`. Prisma 7.5 removed the binary engine; `new PrismaClient()` without a driver adapter throws at runtime. In scripts, follow the `PrismaPg` adapter pattern in `database/prisma/seed/index.ts`.
 
 ---
 

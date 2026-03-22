@@ -10,7 +10,7 @@ import type { Request, Response } from 'express';
 
 interface IErrorResponse {
   statusCode: number;
-  message: string;
+  message: string | string[];
   path: string;
   timestamp: string;
 }
@@ -29,10 +29,21 @@ export class AllExceptionsFilter implements ExceptionFilter {
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    const message =
-      exception instanceof HttpException
-        ? exception.message
-        : 'Internal server error';
+    // For HttpExceptions (including ValidationPipe errors), getResponse() returns
+    // the full body — which may contain an array of field-level validation messages.
+    // Falling back to exception.message would discard those details.
+    let message: string | string[];
+    if (exception instanceof HttpException) {
+      const response = exception.getResponse();
+      message =
+        typeof response === 'object' &&
+        response !== null &&
+        'message' in response
+          ? (response as { message: string | string[] }).message
+          : exception.message;
+    } else {
+      message = 'Internal server error';
+    }
 
     if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
       this.logger.error(

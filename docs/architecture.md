@@ -378,6 +378,7 @@ apps/api/src/
 3. Validation is mandatory.
 4. Business logic must live in services.
 5. Data access must be centralised and predictable.
+6. `PrismaClient` must never be instantiated directly — always use the injected `PrismaService`. Prisma 7.5 removed the native binary engine; calling `new PrismaClient()` without a driver adapter throws at runtime. The `PrismaService` constructor handles adapter setup. In standalone scripts (seed, migrations), use the `PrismaPg` adapter pattern from `database/prisma/seed/index.ts` as the reference.
 
 ---
 
