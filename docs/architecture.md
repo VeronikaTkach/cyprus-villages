@@ -1,32 +1,32 @@
 # architecture.md
 
 ## Project overview
-**Cyprus Villages** — платформа для календаря фестивалей в кипрских деревнях.
+**Cyprus Villages** — a platform for a festival calendar across Cypriot villages.
 
-На первом этапе создаётся **MVP1 web application**:
-- публичный сайт;
-- календарь фестивалей;
-- страницы фестивалей и деревень;
-- карта;
-- административная панель для управления данными.
+The first phase delivers **MVP1 web application**:
+- public website;
+- festival calendar;
+- festival and village pages;
+- map;
+- administrative panel for content management.
 
-На втором этапе создаётся **MVP2 Telegram Mini App**, использующий ту же доменную модель и тот же backend API.
+The second phase delivers **MVP2 Telegram Mini App**, using the same domain model and the same backend API.
 
 ---
 
 ## Product goals
-Система должна решать следующие задачи:
-- собрать фестивали по кипрским деревням в одном месте;
-- показывать даты и статусы событий, включая `TBA`;
-- хранить данные о парковке, основной точке фестиваля и других полезных точках;
-- поддерживать оперативное редактирование контента через admin panel;
-- позволять расширять справочник деревень и фестивалей без переделки архитектуры;
-- подготовить техническую базу для Telegram Mini App.
+The system must solve the following problems:
+- aggregate festivals across Cypriot villages in one place;
+- display event dates and statuses, including `TBA`;
+- store parking, main festival venue, and other useful location points;
+- support fast routine content editing through the admin panel;
+- allow expanding the village and festival catalogue without redesigning the architecture;
+- prepare the technical foundation for the Telegram Mini App.
 
 ---
 
 ## High-level architecture
-Проект проектируется как **monorepo**.
+The project is designed as a **monorepo**.
 
 ### Repository structure
 ```text
@@ -34,16 +34,16 @@ apps/
   web/                # Next.js, public app + admin panel
   api/                # NestJS backend
 packages/
-  shared-types/       # общие типы
-  shared-constants/   # общие константы
-  shared-schemas/     # zod-схемы и валидация
-  shared-config/      # конфиги eslint/tsconfig и др.
+  shared-types/       # shared TypeScript types
+  shared-constants/   # shared constants
+  shared-schemas/     # zod schemas and validation
+  shared-config/      # shared eslint/tsconfig and other configs
 database/
-  prisma/             # schema, migrations, seeds
+  prisma/             # schema, migrations, seed data
 infra/
-  compose/            # docker compose for local/dev
+  compose/            # docker compose for local development
   docker/             # Dockerfiles / nginx
-  env/                # .env examples
+  env/                # .env example files
 docs/
   architecture.md
   stack-decisions.md
@@ -62,7 +62,7 @@ docs/
 - **react-hook-form 7** + **zod 4**
 - **Zustand 5**
 - **Leaflet / react-leaflet 5**
-- **next-intl** or equivalent i18n layer later
+- **next-intl** or equivalent i18n layer — added in a later phase
 
 ### Backend
 - **NestJS 11**
@@ -76,48 +76,48 @@ docs/
 - **pnpm workspace**
 - **Turborepo**
 - **Node 24 LTS**
-- **Docker Compose** for local Postgres
-- later: CI/CD and deployment configs
+- **Docker Compose** for local PostgreSQL
+- later: CI/CD and deployment configuration
 
 ---
 
 ## Why this stack
 
 ### Next.js
-Подходит для:
-- SEO-страниц фестивалей и деревень;
+Suitable for:
+- SEO-friendly festival and village pages;
 - SSR/ISR;
-- одного приложения с public и admin зонами;
-- mobile-first UI, пригодного для последующей адаптации в Mini App.
+- a single application with public and admin zones;
+- mobile-first UI that can later be adapted for the Mini App.
 
 ### Mantine
-Выбран как единая UI-библиотека для:
-- публичного приложения;
-- админ-панели;
-- форм, модалок, drawer-панелей, layout;
-- лёгкой тематизации под Telegram Mini App в будущем.
+Chosen as the single UI library for:
+- the public application;
+- the admin panel;
+- forms, modals, drawer panels, and layout;
+- straightforward theming for the Telegram Mini App in the future.
 
 ### NestJS
-Подходит для:
-- модульной backend-архитектуры;
-- админских и публичных контроллеров;
-- DTO и типизированной валидации;
-- понятного роста API.
+Suitable for:
+- modular backend architecture;
+- separate public and admin controllers;
+- DTOs and typed validation;
+- predictable API growth.
 
 ### Prisma + PostgreSQL
-Подходит для:
-- явной доменной модели;
-- миграций;
-- реляционных связей между деревнями, фестивалями, edition и точками на карте.
+Suitable for:
+- an explicit domain model;
+- migration management;
+- relational links between villages, festivals, editions, and map points.
 
 ---
 
 ## Domain model
 
 ### 1. Village
-Деревня как постоянная сущность.
+A village as a long-lived entity.
 
-**Пример полей:**
+**Example fields:**
 - `id`
 - `slug`
 - `nameEn`, `nameRu`, `nameEl`
@@ -129,11 +129,11 @@ docs/
 - `createdAt`, `updatedAt`
 
 ### 2. Festival
-Постоянная сущность фестиваля.
+A persistent festival entity.
 
-Это не конкретная дата, а сам фестиваль как recurring entity.
+This is not a specific date but the festival itself as a recurring entity.
 
-**Пример полей:**
+**Example fields:**
 - `id`
 - `slug`
 - `villageId`
@@ -143,9 +143,9 @@ docs/
 - `isActive`
 
 ### 3. FestivalEdition
-Конкретный выпуск фестиваля в определённом году.
+A concrete yearly instance of a festival.
 
-**Пример полей:**
+**Example fields:**
 - `id`
 - `festivalId`
 - `year`
@@ -166,9 +166,9 @@ docs/
 - `publishedAt`
 
 ### 4. LocationPoint
-Точка на карте, связанная с деревней или конкретным выпуском фестиваля.
+A geographic point of interest linked to a village or a specific festival edition.
 
-**Пример полей:**
+**Example fields:**
 - `id`
 - `villageId?`
 - `festivalEditionId?`
@@ -179,9 +179,9 @@ docs/
 - `isActive`
 
 ### 5. Media
-Изображения и медиа.
+Images and media assets.
 
-**Пример полей:**
+**Example fields:**
 - `id`
 - `url`
 - `alt`
@@ -190,9 +190,9 @@ docs/
 - `kind`
 
 ### 6. AuditLog
-Журнал административных изменений.
+A log of administrative changes.
 
-**Пример полей:**
+**Example fields:**
 - `id`
 - `userId`
 - `entityType`
@@ -205,18 +205,18 @@ docs/
 ---
 
 ## Core domain principles
-1. `Festival` и `FestivalEdition` — разные сущности, их нельзя смешивать.
-2. Год, даты, parking, venue и source относятся к `FestivalEdition`.
-3. Публично показываются только опубликованные edition.
-4. Деревни и фестивали по умолчанию архивируются, а не удаляются физически.
-5. Если дата неизвестна, используется `isDateTba = true`.
-6. Координаты хранятся нормализованно как числа.
-7. Должна быть готовность к мультиязычности.
+1. `Festival` and `FestivalEdition` are distinct entities and must not be mixed.
+2. Year, dates, parking, venue, and source belong to `FestivalEdition`.
+3. Only published editions are shown publicly.
+4. Villages and festivals are archived by default, not hard deleted.
+5. When a date is unknown, `isDateTba = true` is used.
+6. Coordinates are stored as normalised numeric fields.
+7. The model must be ready for multilingual support.
 
 ---
 
 ## Frontend architecture (FSD)
-Frontend должен быть реализован по **Feature-Sliced Design**.
+The frontend is built using **Feature-Sliced Design**.
 
 ### Layers
 ```text
@@ -229,20 +229,20 @@ src/
   shared/
 ```
 
-### Responsibilities
+### Layer responsibilities
 
 #### `app`
-Глобальные провайдеры, layout, config, theme, router composition.
+Global providers, layout, configuration, theme, router composition.
 
 #### `pages`
 Route-level composition.
 
 #### `widgets`
-Крупные UI-блоки из нескольких сущностей и фич.
+Large UI blocks composed from multiple entities and features.
 
 #### `features`
-Пользовательские действия и сценарии.
-Примеры:
+User actions and scenarios.
+Examples:
 - filter festivals
 - search festivals
 - create festival
@@ -250,21 +250,21 @@ Route-level composition.
 - publish festival edition
 
 #### `entities`
-Бизнес-сущности и их UI/model/api.
-Примеры:
+Business entities and their UI/model/api.
+Examples:
 - festival
 - festival-edition
 - village
 - location-point
 
 #### `shared`
-Переиспользуемый базовый слой:
+Reusable base layer:
 - UI-kit wrappers
-- api clients
+- API clients
 - hooks
-- helpers
+- helper utilities
 - constants
-- telegram bridge
+- Telegram bridge
 
 ---
 
@@ -318,7 +318,7 @@ apps/web/src/
 ---
 
 ## Public app and admin app
-На этапе MVP1 это **одно web-приложение**, но с двумя логическими зонами:
+In MVP1 this is a **single web application** with two logical zones:
 
 ### Public zone
 - home page
@@ -337,17 +337,17 @@ apps/web/src/
 - media management
 - audit log
 
-Обе зоны используют:
-- один backend;
-- одну доменную модель;
-- единый shared-слой.
+Both zones share:
+- one backend;
+- one domain model;
+- a single shared layer.
 
 ---
 
 ## Backend architecture
-Backend строится модульно.
+The backend is built as a modular monolith.
 
-### Suggested structure
+### Structure
 ```text
 apps/api/src/
   main.ts
@@ -373,11 +373,11 @@ apps/api/src/
 ```
 
 ### Principles
-1. Public controllers и admin controllers должны быть разделены.
-2. DTO обязательны.
-3. Валидация обязательна.
-4. Бизнес-логика должна жить в сервисах.
-5. Работа с данными должна быть централизована и предсказуема.
+1. Public controllers and admin controllers must be separated.
+2. DTOs are mandatory.
+3. Validation is mandatory.
+4. Business logic must live in services.
+5. Data access must be centralised and predictable.
 
 ---
 
@@ -409,11 +409,11 @@ GET    /api/v1/admin/audit-log
 ---
 
 ## Database principles
-1. PostgreSQL — основной источник истины.
-2. Prisma schema хранится в `database/prisma`.
-3. Миграции должны быть версионируемыми.
-4. Должны быть seed-данные для локальной разработки.
-5. Поля статусов и активности должны поддерживать архивирование и публикацию.
+1. PostgreSQL is the primary source of truth.
+2. The Prisma schema is stored in `database/prisma`.
+3. Migrations must be versioned.
+4. Seed data must be available for local development.
+5. Status and activity fields must support archiving and publishing workflows.
 
 ---
 
@@ -468,38 +468,38 @@ If cross-timezone support or calendar integration is required in the future, a `
 ---
 
 ## Localization strategy
-На первом этапе желательно проектировать данные под будущую локализацию.
+Data should be designed for future localization from the start.
 
-Базовый вариант для MVP:
-- хранить `nameEn`, `nameRu`, `nameEl` в сущностях напрямую.
+Basic approach for MVP:
+- store `nameEn`, `nameRu`, `nameEl` inline on each entity.
 
-Позже можно перейти к translation tables, если потребуется более гибкая модель.
+Translation tables can be introduced later if a more flexible model is required.
 
 ---
 
 ## Maps strategy
-Приложение должно поддерживать карту.
+The application must support an interactive map.
 
 ### Requirements
-- карта фестиваля;
+- festival map;
 - parking point;
 - venue point;
-- дополнительные точки;
-- нормализованные `lat/lng` поля;
-- возможность редактирования координат в admin panel.
+- additional points of interest;
+- normalised `lat/lng` fields;
+- coordinate editing in the admin panel.
 
 ---
 
 ## Telegram Mini App readiness
-Хотя Mini App появится во втором этапе, подготовка должна быть заложена сразу.
+Although the Mini App is planned for phase two, the groundwork must be laid from the start.
 
-### What should be prepared in MVP1
+### What must be prepared in MVP1
 - mobile-first UI;
-- единый Public API;
+- a single public API;
 - shared types and schemas;
-- abstraction layer for Telegram bridge;
-- независимость core domain logic от transport layer;
-- отсутствие desktop-only assumptions в ключевых flows.
+- an abstraction layer for the Telegram bridge;
+- independence of core domain logic from the transport layer;
+- no desktop-only assumptions in critical user flows.
 
 ### Suggested frontend preparation
 ```text
@@ -511,7 +511,7 @@ shared/lib/telegram/
   types.ts
 ```
 
-На MVP1 это может быть thin adapter с безопасными no-op реализациями.
+In MVP1 this can be a thin adapter with safe no-op implementations.
 
 ---
 
@@ -522,41 +522,41 @@ shared/lib/telegram/
 - `editor`
 
 ### Basic role policy
-- `editor` — создаёт и редактирует черновики;
-- `content_admin` — публикует и архивирует;
-- `super_admin` — управляет пользователями, ролями и системными настройками.
+- `editor` — creates and edits drafts;
+- `content_admin` — publishes and archives;
+- `super_admin` — manages users, roles, and system settings.
 
 ---
 
 ## Admin UX principles
-Админ-панель должна быть ориентирована на быстрые рутинные изменения контента.
+The admin panel must be optimised for fast routine content changes.
 
-### Important admin scenarios
-- изменить дату фестиваля;
-- отметить дату как `TBA`;
-- обновить parking point;
-- добавить новую деревню;
-- скрыть деревню;
-- опубликовать выпуск фестиваля;
-- заархивировать выпуск;
-- увидеть историю изменений.
+### Key admin scenarios
+- change a festival date;
+- mark a date as `TBA`;
+- update a parking point;
+- add a new village;
+- hide a village;
+- publish a festival edition;
+- archive an edition;
+- review the change history.
 
 ### UI expectations
-- таблицы списков;
-- формы редактирования;
+- list tables;
+- edit forms;
 - drawer/modal patterns;
 - map picker for coordinates;
-- publish/archive actions.
+- publish and archive actions.
 
 ---
 
 ## Architectural constraints
-1. Не строить отдельную независимую модель для Mini App.
-2. Не смешивать public и admin responsibilities.
-3. Не хранить festival date только как display string.
-4. Не использовать hard delete по умолчанию.
-5. Не складывать всю логику в shared.
-6. Не допускать прямого хаотичного импорта UI-библиотеки без обёрток в shared/ui там, где нужен контроль над design system.
+1. Do not build a separate independent model for the Mini App.
+2. Do not mix public and admin responsibilities.
+3. Do not store festival dates only as display strings.
+4. Do not use hard delete by default.
+5. Do not put all logic into shared.
+6. Do not allow uncontrolled direct imports of the UI library where the design system layer in shared/ui is required.
 
 ---
 
@@ -565,16 +565,16 @@ shared/lib/telegram/
 2. Initialize `apps/web`.
 3. Initialize `apps/api`.
 4. Configure workspace and shared packages.
-5. Setup Prisma and PostgreSQL.
+5. Set up Prisma and PostgreSQL.
 6. Configure Mantine and base layouts.
-7. Implement Village domain.
-8. Implement Festival + FestivalEdition domain.
+7. Implement the Village domain.
+8. Implement the Festival + FestivalEdition domain.
 9. Implement LocationPoint management.
-10. Add public festival list and details.
+10. Add the public festival list and detail pages.
 11. Add admin CRUD.
 12. Add audit logging.
 13. Add localization.
-14. Prepare Telegram bridge.
+14. Prepare the Telegram bridge.
 
 ---
 
@@ -594,7 +594,7 @@ shared/lib/telegram/
 ### Deferred
 - Telegram Mini App UI;
 - reminders;
-- favorites;
+- favourites;
 - user cabinet;
 - advanced analytics;
 - automated source parsing.
@@ -602,9 +602,9 @@ shared/lib/telegram/
 ---
 
 ## Final architectural statement
-Проект должен разрабатываться как **единая контентно-доменная платформа** для фестивалей кипрских деревень, где:
-- web и future mini app используют один backend;
-- публичная часть и админка разделены логически, но работают на одном домене;
-- `FestivalEdition` является обязательной сущностью;
-- данные поддерживают редактирование, архивирование и неполную определённость (`TBA`);
-- архитектура готова к масштабированию без переписывания ядра.
+The project must be developed as a **unified content-domain platform** for festivals of Cypriot villages, where:
+- the web app and the future Mini App share one backend;
+- the public zone and the admin panel are logically separated but run on the same domain;
+- `FestivalEdition` is a mandatory entity;
+- data supports editing, archiving, and partial uncertainty (`TBA`);
+- the architecture is ready to scale without rewriting the core.
