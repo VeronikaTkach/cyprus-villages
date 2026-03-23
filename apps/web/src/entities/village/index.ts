@@ -1,4 +1,5 @@
-export type { IVillage, ICreateVillageDto, IUpdateVillageDto } from './model';
+export type { IVillage, IVillageTranslation, ICreateVillageDto, IUpdateVillageDto } from './model';
+export { getTranslation } from './model';
 export { VillageCard } from './ui';
 export {
   villageKeys,

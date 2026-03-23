@@ -1,7 +1,9 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { Card, Text, Badge, Group, Stack } from '@mantine/core';
 import { IconMapPin } from '@tabler/icons-react';
+import { getTranslation } from '../model';
 import type { IVillage } from '../model';
 
 interface IVillageCardProps {
@@ -9,14 +11,17 @@ interface IVillageCardProps {
 }
 
 export function VillageCard({ village }: IVillageCardProps) {
+  const locale = useLocale();
+  const t = getTranslation(village, locale);
+
   return (
     <Card shadow="sm" padding="lg" radius="md" withBorder>
       <Stack gap="xs">
         <Group justify="space-between" align="flex-start">
           <Text fw={600} size="lg" lineClamp={1}>
-            {village.nameEn}
+            {t?.name ?? village.slug}
           </Text>
-          {village.nameEl && (
+          {village.nameEl && locale !== 'el' && (
             <Text c="dimmed" size="sm" style={{ flexShrink: 0 }}>
               {village.nameEl}
             </Text>
@@ -32,9 +37,9 @@ export function VillageCard({ village }: IVillageCardProps) {
           </Group>
         )}
 
-        {village.descriptionEn && (
+        {t?.description && (
           <Text size="sm" c="dimmed" lineClamp={3}>
-            {village.descriptionEn}
+            {t.description}
           </Text>
         )}
 

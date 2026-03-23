@@ -4,19 +4,22 @@ import {
   Anchor,
   AppShell,
   Burger,
+  Divider,
   Drawer,
   Group,
   NavLink,
   Text,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { Link, usePathname } from '@/i18n/navigation';
 import { publicNavItems } from '@/shared/config/navigation';
+import { LocaleSwitcher } from './LocaleSwitcher';
 
 export function Header() {
   const [opened, { toggle, close }] = useDisclosure(false);
   const pathname = usePathname();
+  const t = useTranslations('nav');
 
   function isActive(href: string, exact?: boolean) {
     if (!pathname) return false;
@@ -39,37 +42,33 @@ export function Header() {
                 key={item.href}
                 component={Link}
                 href={item.href}
-                label={item.label}
+                label={t(item.labelKey)}
                 leftSection={item.icon}
                 active={isActive(item.href, item.exact)}
                 style={{ borderRadius: 'var(--mantine-radius-md)' }}
               />
             ))}
+            <LocaleSwitcher />
           </Group>
 
           <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
         </Group>
       </AppShell.Header>
 
-      {/* Mobile nav drawer — only triggered on small screens via the burger */}
-      <Drawer
-        opened={opened}
-        onClose={close}
-        title="Menu"
-        size="xs"
-        position="left"
-      >
+      <Drawer opened={opened} onClose={close} title="Menu" size="xs" position="left">
         {publicNavItems.map((item) => (
           <NavLink
             key={item.href}
             component={Link}
             href={item.href}
-            label={item.label}
+            label={t(item.labelKey)}
             leftSection={item.icon}
             active={isActive(item.href, item.exact)}
             onClick={close}
           />
         ))}
+        <Divider my="sm" />
+        <LocaleSwitcher />
       </Drawer>
     </>
   );

@@ -1,1 +1,2 @@
-export type { IVillage, ICreateVillageDto, IUpdateVillageDto } from './types';
+export type { IVillage, IVillageTranslation, ICreateVillageDto, IUpdateVillageDto } from './types';
+export { getTranslation } from './types';

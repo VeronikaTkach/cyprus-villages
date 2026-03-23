@@ -21,6 +21,10 @@ export function AdminVillagesListView() {
   if (isLoading) return <LoadingState />;
   if (isError) return <Text c="red">Failed to load villages.</Text>;
 
+  function getEnName(translations: { locale: string; name: string }[]): string {
+    return translations.find((t) => t.locale === 'en')?.name ?? '—';
+  }
+
   function handleArchive(id: number, name: string) {
     if (!window.confirm(`Archive "${name}"? It will no longer appear on the public site.`)) return;
     archiveMutation.mutate(id);
@@ -51,78 +55,77 @@ export function AdminVillagesListView() {
               <Table.Th>ID</Table.Th>
               <Table.Th>Slug</Table.Th>
               <Table.Th>Name (EN)</Table.Th>
+              <Table.Th>Greek name</Table.Th>
               <Table.Th>District</Table.Th>
-              <Table.Th>Region</Table.Th>
               <Table.Th>Status</Table.Th>
               <Table.Th />
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {villages.map((village) => (
-              <Table.Tr key={village.id}>
-                <Table.Td>
-                  <Text size="sm" c="dimmed">
-                    {village.id}
-                  </Text>
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm" ff="monospace">
-                    {village.slug}
-                  </Text>
-                </Table.Td>
-                <Table.Td>
-                  <Anchor
-                    component={Link}
-                    href={`/admin/villages/${village.id}/edit`}
-                    size="sm"
-                    fw={500}
-                  >
-                    {village.nameEn}
-                  </Anchor>
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm">{village.district ?? '—'}</Text>
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm">{village.region ?? '—'}</Text>
-                </Table.Td>
-                <Table.Td>
-                  <Badge
-                    color={village.isActive ? 'teal' : 'gray'}
-                    variant="light"
-                    size="sm"
-                  >
-                    {village.isActive ? 'Active' : 'Archived'}
-                  </Badge>
-                </Table.Td>
-                <Table.Td>
-                  <Group gap="xs" justify="flex-end">
-                    <Button
+            {villages.map((village) => {
+              const enName = getEnName(village.translations);
+              return (
+                <Table.Tr key={village.id}>
+                  <Table.Td>
+                    <Text size="sm" c="dimmed">
+                      {village.id}
+                    </Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm" ff="monospace">
+                      {village.slug}
+                    </Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Anchor
                       component={Link}
                       href={`/admin/villages/${village.id}/edit`}
-                      variant="subtle"
-                      size="xs"
+                      size="sm"
+                      fw={500}
                     >
-                      Edit
-                    </Button>
-                    {village.isActive && (
+                      {enName}
+                    </Anchor>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm">{village.nameEl ?? '—'}</Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm">{village.district ?? '—'}</Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Badge color={village.isActive ? 'teal' : 'gray'} variant="light" size="sm">
+                      {village.isActive ? 'Active' : 'Archived'}
+                    </Badge>
+                  </Table.Td>
+                  <Table.Td>
+                    <Group gap="xs" justify="flex-end">
                       <Button
+                        component={Link}
+                        href={`/admin/villages/${village.id}/edit`}
                         variant="subtle"
-                        color="red"
                         size="xs"
-                        loading={
-                          archiveMutation.isPending &&
-                          archiveMutation.variables === village.id
-                        }
-                        onClick={() => handleArchive(village.id, village.nameEn)}
                       >
-                        Archive
+                        Edit
                       </Button>
-                    )}
-                  </Group>
-                </Table.Td>
-              </Table.Tr>
-            ))}
+                      {village.isActive && (
+                        <Button
+                          variant="subtle"
+                          color="red"
+                          size="xs"
+                          loading={
+                            archiveMutation.isPending &&
+                            archiveMutation.variables === village.id
+                          }
+                          onClick={() => handleArchive(village.id, enName)}
+                        >
+                          Archive
+                        </Button>
+                      )}
+                    </Group>
+                  </Table.Td>
+                </Table.Tr>
+              );
+            })}
           </Table.Tbody>
         </Table>
       )}

@@ -33,6 +33,7 @@ const prisma = new PrismaClient({ adapter });
 // ─────────────────────────────────────────────────────────────
 // CLEAR
 // Reverse FK dependency order to avoid constraint violations.
+// VillageTranslation rows are removed via CASCADE on Village delete.
 // ─────────────────────────────────────────────────────────────
 
 async function clearAll(): Promise<void> {
@@ -41,7 +42,7 @@ async function clearAll(): Promise<void> {
   await prisma.locationPoint.deleteMany();
   await prisma.festivalEdition.deleteMany();
   await prisma.festival.deleteMany();
-  await prisma.village.deleteMany();
+  await prisma.village.deleteMany(); // cascades to VillageTranslation
   await prisma.user.deleteMany();
 }
 
@@ -71,16 +72,34 @@ async function seed(): Promise<void> {
   const omodos = await prisma.village.create({
     data: {
       slug: 'omodos',
-      nameEn: 'Omodos',
-      nameRu: 'Омодос',
       nameEl: 'Ομοδός',
       district: 'Limassol',
       region: 'Troodos',
-      descriptionEn:
-        'A picturesque mountain village in the Troodos foothills, known for its wine production, cobblestone streets, and the Timios Stavros (Holy Cross) monastery at its centre.',
       centerLat: 34.8494,
       centerLng: 32.8108,
       isActive: true,
+      translations: {
+        create: [
+          {
+            locale: 'en',
+            name: 'Omodos',
+            description:
+              'A picturesque mountain village in the Troodos foothills, known for its wine production, cobblestone streets, and the Timios Stavros (Holy Cross) monastery at its centre.',
+          },
+          {
+            locale: 'ru',
+            name: 'Омодос',
+            description:
+              'Живописная горная деревня у подножия Троодоса, известная виноделием, мощёными улочками и монастырём Тимиос Ставрос (Святого Креста) в центре.',
+          },
+          {
+            locale: 'el',
+            name: 'Ομοδός',
+            description:
+              'Ένα γραφικό ορεινό χωριό στις παρυφές του Τροόδους, γνωστό για την παραγωγή κρασιού, τα πλακόστρωτα δρομάκια και τη Μονή Τιμίου Σταυρού στο κέντρο του.',
+          },
+        ],
+      },
     },
   });
 
@@ -92,16 +111,34 @@ async function seed(): Promise<void> {
   const lefkara = await prisma.village.create({
     data: {
       slug: 'lefkara',
-      nameEn: 'Lefkara',
-      nameRu: 'Лефкара',
       nameEl: 'Λεύκαρα',
       district: 'Larnaca',
       region: 'Troodos',
-      descriptionEn:
-        'A traditional hilltop village celebrated for its handmade lace (lefkaritika) and silver jewellery. Leonardo da Vinci reportedly visited in 1481. A UNESCO Intangible Cultural Heritage craft tradition.',
       centerLat: 34.8709,
       centerLng: 33.3232,
       isActive: true,
+      translations: {
+        create: [
+          {
+            locale: 'en',
+            name: 'Lefkara',
+            description:
+              'A traditional hilltop village celebrated for its handmade lace (lefkaritika) and silver jewellery. Leonardo da Vinci reportedly visited in 1481. A UNESCO Intangible Cultural Heritage craft tradition.',
+          },
+          {
+            locale: 'ru',
+            name: 'Лефкара',
+            description:
+              'Традиционная деревня на вершине холма, знаменитая ручным кружевом (лефкаритика) и серебряными украшениями. По преданию, в 1481 году её посетил Леонардо да Винчи. Нематериальное культурное наследие ЮНЕСКО.',
+          },
+          {
+            locale: 'el',
+            name: 'Λεύκαρα',
+            description:
+              'Ένα παραδοσιακό χωριό στην κορυφή λόφου, γνωστό για τη χειροποίητη δαντέλα (λευκαρίτικα) και τα ασημένια κοσμήματα. Αναφέρεται ότι το επισκέφθηκε ο Λεονάρντο ντα Βίντσι το 1481.',
+          },
+        ],
+      },
     },
   });
 
@@ -112,25 +149,39 @@ async function seed(): Promise<void> {
   const pachna = await prisma.village.create({
     data: {
       slug: 'pachna',
-      nameEn: 'Pachna',
-      nameRu: 'Пахна',
       nameEl: 'Πάχνα',
       district: 'Limassol',
       region: 'Krasochoria',
-      descriptionEn:
-        'A small agricultural village in the Limassol wine belt, known for local Commandaria-area viticulture and its traditional annual wine celebration.',
       centerLat: 34.8038,
       centerLng: 32.8543,
       isActive: true,
+      translations: {
+        create: [
+          {
+            locale: 'en',
+            name: 'Pachna',
+            description:
+              'A small agricultural village in the Limassol wine belt, known for local Commandaria-area viticulture and its traditional annual wine celebration.',
+          },
+          {
+            locale: 'ru',
+            name: 'Пахна',
+            description:
+              'Небольшая сельскохозяйственная деревня в лимасольском винном регионе, известная виноградарством в зоне Командарии и ежегодным традиционным праздником вина.',
+          },
+          {
+            locale: 'el',
+            name: 'Πάχνα',
+            description:
+              'Ένα μικρό αγροτικό χωριό στη ζώνη κρασιού της Λεμεσού, γνωστό για την αμπελοκαλλιέργεια στην περιοχή της Κομανδαρίας.',
+          },
+        ],
+      },
     },
   });
 
   // ── Festivals ─────────────────────────────────────────────
 
-  /**
-   * Omodos Wine Festival — recurring annual wine celebration.
-   * Held in the main square, features local wineries, live music, and food.
-   */
   const omodosFestival = await prisma.festival.create({
     data: {
       slug: 'omodos-wine-festival',
@@ -145,10 +196,6 @@ async function seed(): Promise<void> {
     },
   });
 
-  /**
-   * Holy Cross Festival — religious celebration at Timios Stavros monastery.
-   * One of the most important annual events in Omodos.
-   */
   const holyCrossFestival = await prisma.festival.create({
     data: {
       slug: 'omodos-holy-cross',
@@ -163,9 +210,6 @@ async function seed(): Promise<void> {
     },
   });
 
-  /**
-   * Lefkara Traditional Festival — cultural celebration of village crafts and heritage.
-   */
   const lefkaraFestival = await prisma.festival.create({
     data: {
       slug: 'lefkara-traditional-festival',
@@ -174,16 +218,12 @@ async function seed(): Promise<void> {
       titleRu: 'Традиционный фестиваль Лефкары',
       titleEl: 'Παραδοσιακή Γιορτή Λεύκαρας',
       shortDescriptionEn:
-        'Annual summer festival celebrating the village\'s lace-making heritage, traditional crafts, folk music, and local cuisine.',
+        "Annual summer festival celebrating the village's lace-making heritage, traditional crafts, folk music, and local cuisine.",
       category: FestivalCategory.CULTURAL,
       isActive: true,
     },
   });
 
-  /**
-   * Pachna Wine Festival — small local wine celebration.
-   * Date not yet confirmed for the upcoming season.
-   */
   const pachnaFestival = await prisma.festival.create({
     data: {
       slug: 'pachna-wine-festival',
@@ -200,11 +240,6 @@ async function seed(): Promise<void> {
 
   // ── Festival Editions ──────────────────────────────────────
 
-  /**
-   * Omodos Wine Festival 2025.
-   * Published edition with concrete dates, venue, and parking.
-   * Three-day evening event in the main square.
-   */
   const omodosFest2025 = await prisma.festivalEdition.create({
     data: {
       festivalId: omodosFestival.id,
@@ -228,10 +263,6 @@ async function seed(): Promise<void> {
     },
   });
 
-  /**
-   * Holy Cross Festival 2025.
-   * Published single-day religious event. Parking not applicable.
-   */
   const holyCross2025 = await prisma.festivalEdition.create({
     data: {
       festivalId: holyCrossFestival.id,
@@ -250,10 +281,6 @@ async function seed(): Promise<void> {
     },
   });
 
-  /**
-   * Lefkara Traditional Festival 2025.
-   * Published edition. Single afternoon/evening event.
-   */
   const lefkara2025 = await prisma.festivalEdition.create({
     data: {
       festivalId: lefkaraFestival.id,
@@ -276,10 +303,6 @@ async function seed(): Promise<void> {
     },
   });
 
-  /**
-   * Pachna Wine Festival 2026 — draft edition, date not yet confirmed.
-   * Demonstrates the TBA pattern: festival is known, date is not set yet.
-   */
   const pachna2026 = await prisma.festivalEdition.create({
     data: {
       festivalId: pachnaFestival.id,
@@ -289,14 +312,13 @@ async function seed(): Promise<void> {
       parkingName: 'Pachna Village Square',
       parkingLat: 34.8035,
       parkingLng: 32.8542,
-      sourceNote: 'Festival is planned for 2026. Exact dates TBA — typically held in September.',
+      sourceNote:
+        'Festival is planned for 2026. Exact dates TBA — typically held in September.',
     },
   });
 
   // ── Location Points ────────────────────────────────────────
 
-  // Village-only: permanent Omodos village parking.
-  // Always shown on the village map, not tied to a specific edition.
   await prisma.locationPoint.create({
     data: {
       type: LocationPointType.PARKING,
@@ -309,9 +331,6 @@ async function seed(): Promise<void> {
     },
   });
 
-  // Both village + edition: Omodos Main Square serves as the permanent
-  // village centre point AND as the wine festival venue.
-  // Intentional dual-ownership — see docs/architecture.md § LocationPoint dual ownership.
   await prisma.locationPoint.create({
     data: {
       type: LocationPointType.VENUE,
@@ -325,13 +344,11 @@ async function seed(): Promise<void> {
     },
   });
 
-  // Edition-only: shuttle stop specific to the 2025 wine festival.
-  // Temporary point — not relevant outside this edition.
   await prisma.locationPoint.create({
     data: {
       type: LocationPointType.SHUTTLE,
       label: 'Shuttle Stop — Omodos Junction',
-      lat: 34.8420,
+      lat: 34.842,
       lng: 32.8178,
       note: 'Free shuttle service to/from Omodos village during the wine festival. Departs every 30 min.',
       festivalEditionId: omodosFest2025.id,
@@ -339,7 +356,6 @@ async function seed(): Promise<void> {
     },
   });
 
-  // Village-only: Lefkara traditional quarter viewpoint.
   await prisma.locationPoint.create({
     data: {
       type: LocationPointType.VIEWPOINT,
@@ -352,7 +368,6 @@ async function seed(): Promise<void> {
     },
   });
 
-  // Edition-only: festival stage for Lefkara Traditional Festival 2025.
   await prisma.locationPoint.create({
     data: {
       type: LocationPointType.VENUE,
@@ -366,10 +381,7 @@ async function seed(): Promise<void> {
   });
 
   // ── Media ─────────────────────────────────────────────────
-  // Each record has exactly one FK set — single-owner invariant.
-  // See docs/architecture.md § Media single-owner invariant.
 
-  // Village cover — Omodos
   await prisma.media.create({
     data: {
       url: '/uploads/seed/omodos-village-cover.jpg',
@@ -381,7 +393,6 @@ async function seed(): Promise<void> {
     },
   });
 
-  // Village cover — Lefkara
   await prisma.media.create({
     data: {
       url: '/uploads/seed/lefkara-village-cover.jpg',
@@ -393,7 +404,6 @@ async function seed(): Promise<void> {
     },
   });
 
-  // Village thumbnail — Pachna
   await prisma.media.create({
     data: {
       url: '/uploads/seed/pachna-village-thumb.jpg',
@@ -405,7 +415,6 @@ async function seed(): Promise<void> {
     },
   });
 
-  // Festival gallery image — Omodos Wine Festival
   await prisma.media.create({
     data: {
       url: '/uploads/seed/omodos-wine-festival-gallery-01.jpg',
@@ -417,7 +426,6 @@ async function seed(): Promise<void> {
     },
   });
 
-  // Festival edition cover — Lefkara Traditional Festival 2025
   await prisma.media.create({
     data: {
       url: '/uploads/seed/lefkara-festival-2025-cover.jpg',
@@ -430,9 +438,6 @@ async function seed(): Promise<void> {
   });
 
   // ── Audit Log ─────────────────────────────────────────────
-
-  // Log CREATE + PUBLISH for the two main published editions.
-  // Demonstrates the audit trail pattern used by admin actions.
 
   await prisma.auditLog.createMany({
     data: [

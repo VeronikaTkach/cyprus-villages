@@ -1,4 +1,4 @@
-import { PublicLayout } from '../layouts/public/PublicLayout';
+import { PublicLayout } from '../../layouts/public/PublicLayout';
 
 export default function PublicRouteLayout({
   children,

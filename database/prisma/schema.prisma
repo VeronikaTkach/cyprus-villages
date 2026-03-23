@@ -77,15 +77,10 @@ model Village {
   id          Int     @id @default(autoincrement())
   slug        String  @unique
 
-  // Multilingual names — inline fields for MVP1
-  nameEn      String
-  nameRu      String?
+  // Greek name — displayed permanently alongside the localised name.
+  // Kept as a direct column because it is always shown regardless of the
+  // active locale (it is the "authentic" village name, not just one translation).
   nameEl      String?
-
-  // Multilingual descriptions — optional
-  descriptionEn String? @db.Text
-  descriptionRu String? @db.Text
-  descriptionEl String? @db.Text
 
   // Administrative geography
   district    String?
@@ -102,6 +97,7 @@ model Village {
   updatedAt   DateTime @updatedAt
 
   // Relations
+  translations   VillageTranslation[]
   festivals      Festival[]
   locationPoints LocationPoint[]
   media          Media[]
@@ -109,6 +105,22 @@ model Village {
   @@index([isActive])
   @@index([district])
   @@index([region])
+}
+
+// One row per locale per village.
+// Adding a new language never requires a schema migration — just add rows.
+model VillageTranslation {
+  id          Int     @id @default(autoincrement())
+  villageId   Int
+  locale      String  // 'en' | 'ru' | 'el' | any future locale
+  name        String
+  description String? @db.Text
+
+  village     Village @relation(fields: [villageId], references: [id], onDelete: Cascade)
+
+  @@unique([villageId, locale])
+  @@index([villageId])
+  @@index([locale])
 }
 
 // ─────────────────────────────────────────────────────────────

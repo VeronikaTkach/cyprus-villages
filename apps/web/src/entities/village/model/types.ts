@@ -1,19 +1,21 @@
+export interface IVillageTranslation {
+  locale: string;
+  name: string;
+  description: string | null;
+}
+
 export interface IVillage {
   id: number;
   slug: string;
-  nameEn: string;
-  nameRu: string | null;
-  nameEl: string | null;
+  nameEl: string | null; // Greek name — always shown alongside the localised name
   district: string | null;
   region: string | null;
-  descriptionEn: string | null;
-  descriptionRu: string | null;
-  descriptionEl: string | null;
   centerLat: number | null;
   centerLng: number | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  translations: IVillageTranslation[];
 }
 
 export interface ICreateVillageDto {
@@ -31,3 +33,16 @@ export interface ICreateVillageDto {
 }
 
 export type IUpdateVillageDto = Partial<Omit<ICreateVillageDto, 'slug'>>;
+
+// ── Helper ────────────────────────────────────────────────────────────────────
+
+export function getTranslation(
+  village: IVillage,
+  locale: string,
+  fallback = 'en',
+): IVillageTranslation | undefined {
+  return (
+    village.translations.find((t) => t.locale === locale) ??
+    village.translations.find((t) => t.locale === fallback)
+  );
+}

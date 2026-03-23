@@ -3,7 +3,7 @@ import { PageContainer } from '@/shared/ui';
 import { VillageDetailView } from './_VillageDetailView';
 
 interface IVillagePageProps {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }
 
 export async function generateMetadata({ params }: IVillagePageProps): Promise<Metadata> {

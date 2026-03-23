@@ -1,0 +1,34 @@
+{
+  "nav": {
+    "home": "Home",
+    "festivals": "Festivals",
+    "villages": "Villages",
+    "map": "Map"
+  },
+  "villages": {
+    "title": "Villages",
+    "description": "Traditional villages of Cyprus",
+    "notFound": "Village not found.",
+    "loadError": "Failed to load villages."
+  },
+  "festivals": {
+    "title": "Festivals",
+    "description": "Festival calendar and events"
+  },
+  "map": {
+    "title": "Map",
+    "description": "Villages and festivals on the map"
+  },
+  "home": {
+    "title": "Cyprus Villages",
+    "description": "Discover traditional festivals and villages across Cyprus"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "empty": "Nothing here yet",
+    "back": "Back",
+    "edit": "Edit",
+    "archive": "Archive"
+  }
+}

@@ -61,16 +61,14 @@ export class VillagesService {
 
     const village = await this.villagesRepository.create({
       slug: dto.slug,
-      nameEn: dto.nameEn,
-      nameRu: dto.nameRu,
       nameEl: dto.nameEl,
       district: dto.district,
       region: dto.region,
-      descriptionEn: dto.descriptionEn,
-      descriptionRu: dto.descriptionRu,
-      descriptionEl: dto.descriptionEl,
       centerLat: dto.centerLat,
       centerLng: dto.centerLng,
+      translations: {
+        create: this.buildTranslationCreates(dto),
+      },
     });
 
     await this.writeAuditLog(village.id, AuditAction.CREATE, null, village);
@@ -81,17 +79,15 @@ export class VillagesService {
   async updateVillage(id: number, dto: UpdateVillageDto): Promise<TVillageRecord> {
     const before = await this.getVillageById(id);
 
+    const upserts = this.buildTranslationUpserts(id, dto);
+
     const village = await this.villagesRepository.update(id, {
-      nameEn: dto.nameEn,
-      nameRu: dto.nameRu,
       nameEl: dto.nameEl,
       district: dto.district,
       region: dto.region,
-      descriptionEn: dto.descriptionEn,
-      descriptionRu: dto.descriptionRu,
-      descriptionEl: dto.descriptionEl,
       centerLat: dto.centerLat,
       centerLng: dto.centerLng,
+      ...(upserts.length > 0 && { translations: { upsert: upserts } }),
     });
 
     await this.writeAuditLog(id, AuditAction.UPDATE, before, village);
@@ -113,6 +109,68 @@ export class VillagesService {
     await this.writeAuditLog(id, AuditAction.ARCHIVE, before, village);
 
     return village;
+  }
+
+  // ── Translation helpers ───────────────────────────────────
+
+  private buildTranslationCreates(
+    dto: CreateVillageDto,
+  ): Prisma.VillageTranslationCreateWithoutVillageInput[] {
+    const creates: Prisma.VillageTranslationCreateWithoutVillageInput[] = [
+      { locale: 'en', name: dto.nameEn, description: dto.descriptionEn ?? null },
+    ];
+
+    if (dto.nameRu) {
+      creates.push({
+        locale: 'ru',
+        name: dto.nameRu,
+        description: dto.descriptionRu ?? null,
+      });
+    }
+
+    if (dto.nameEl) {
+      creates.push({
+        locale: 'el',
+        name: dto.nameEl,
+        description: dto.descriptionEl ?? null,
+      });
+    }
+
+    return creates;
+  }
+
+  private buildTranslationUpserts(
+    id: number,
+    dto: UpdateVillageDto,
+  ): Prisma.VillageTranslationUpsertWithWhereUniqueWithoutVillageInput[] {
+    const upserts: Prisma.VillageTranslationUpsertWithWhereUniqueWithoutVillageInput[] =
+      [];
+
+    if (dto.nameEn !== undefined) {
+      upserts.push({
+        where: { villageId_locale: { villageId: id, locale: 'en' } },
+        create: { locale: 'en', name: dto.nameEn, description: dto.descriptionEn ?? null },
+        update: { name: dto.nameEn, description: dto.descriptionEn ?? null },
+      });
+    }
+
+    if (dto.nameRu !== undefined) {
+      upserts.push({
+        where: { villageId_locale: { villageId: id, locale: 'ru' } },
+        create: { locale: 'ru', name: dto.nameRu, description: dto.descriptionRu ?? null },
+        update: { name: dto.nameRu, description: dto.descriptionRu ?? null },
+      });
+    }
+
+    if (dto.nameEl !== undefined) {
+      upserts.push({
+        where: { villageId_locale: { villageId: id, locale: 'el' } },
+        create: { locale: 'el', name: dto.nameEl, description: dto.descriptionEl ?? null },
+        update: { name: dto.nameEl, description: dto.descriptionEl ?? null },
+      });
+    }
+
+    return upserts;
   }
 
   // ── Audit ─────────────────────────────────────────────────

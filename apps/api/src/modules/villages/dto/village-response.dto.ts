@@ -1,5 +1,16 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+export class VillageTranslationDto {
+  @ApiProperty({ example: 'en', description: 'BCP 47 locale code' })
+  locale!: string;
+
+  @ApiProperty({ example: 'Omodos' })
+  name!: string;
+
+  @ApiPropertyOptional({ nullable: true })
+  description!: string | null;
+}
+
 export class VillageResponseDto {
   @ApiProperty({ example: 1 })
   id!: number;
@@ -7,13 +18,11 @@ export class VillageResponseDto {
   @ApiProperty({ example: 'omodos' })
   slug!: string;
 
-  @ApiProperty({ example: 'Omodos' })
-  nameEn!: string;
-
-  @ApiPropertyOptional({ example: 'Омодос', nullable: true })
-  nameRu!: string | null;
-
-  @ApiPropertyOptional({ example: 'Ομοδός', nullable: true })
+  @ApiPropertyOptional({
+    example: 'Ομοδός',
+    nullable: true,
+    description: 'Greek name — always shown alongside the localised name.',
+  })
   nameEl!: string | null;
 
   @ApiPropertyOptional({ example: 'Limassol', nullable: true })
@@ -21,15 +30,6 @@ export class VillageResponseDto {
 
   @ApiPropertyOptional({ example: 'Troodos', nullable: true })
   region!: string | null;
-
-  @ApiPropertyOptional({ nullable: true })
-  descriptionEn!: string | null;
-
-  @ApiPropertyOptional({ nullable: true })
-  descriptionRu!: string | null;
-
-  @ApiPropertyOptional({ nullable: true })
-  descriptionEl!: string | null;
 
   @ApiPropertyOptional({ example: 34.8494, nullable: true })
   centerLat!: number | null;
@@ -45,4 +45,7 @@ export class VillageResponseDto {
 
   @ApiProperty({ example: '2026-01-01T00:00:00.000Z' })
   updatedAt!: Date;
+
+  @ApiProperty({ type: [VillageTranslationDto] })
+  translations!: VillageTranslationDto[];
 }

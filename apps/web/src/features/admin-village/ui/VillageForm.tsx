@@ -11,25 +11,31 @@ import {
   Grid,
   NumberInput,
   Stack,
+  Tabs,
   Text,
   Textarea,
   TextInput,
   Title,
 } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
+import { LOCALE_LABELS } from '@/shared/i18n';
+import type { TLocale } from '@/shared/i18n';
 import type { ICreateVillageDto, IUpdateVillageDto } from '@/entities/village';
 
 // ─── Schemas ────────────────────────────────────────────────────────────────
 
-const sharedFields = {
+const translationFields = {
   nameEn: z.string().min(1, 'Required').max(100, 'Max 100 characters'),
   nameRu: z.string().max(100, 'Max 100 characters').optional(),
   nameEl: z.string().max(100, 'Max 100 characters').optional(),
-  district: z.string().max(100, 'Max 100 characters').optional(),
-  region: z.string().max(100, 'Max 100 characters').optional(),
   descriptionEn: z.string().optional(),
   descriptionRu: z.string().optional(),
   descriptionEl: z.string().optional(),
+};
+
+const locationFields = {
+  district: z.string().max(100, 'Max 100 characters').optional(),
+  region: z.string().max(100, 'Max 100 characters').optional(),
   centerLat: z.number().min(-90, 'Min -90').max(90, 'Max 90').optional(),
   centerLng: z.number().min(-180, 'Min -180').max(180, 'Max 180').optional(),
 };
@@ -40,13 +46,31 @@ const createSchema = z.object({
     .min(2, 'Min 2 characters')
     .max(60, 'Max 60 characters')
     .regex(/^[a-z0-9-]+$/, 'Lowercase letters, numbers, and hyphens only'),
-  ...sharedFields,
+  ...translationFields,
+  ...locationFields,
 });
 
-const editSchema = z.object(sharedFields);
+const editSchema = z.object({
+  ...translationFields,
+  ...locationFields,
+});
 
 type TCreateValues = z.infer<typeof createSchema>;
 type TEditValues = z.infer<typeof editSchema>;
+
+// ─── Locale tabs config ───────────────────────────────────────────────────────
+
+const LOCALES: TLocale[] = ['en', 'ru', 'el'];
+
+// Field names per locale
+const LOCALE_FIELDS: Record<
+  TLocale,
+  { name: keyof TEditValues; description: keyof TEditValues }
+> = {
+  en: { name: 'nameEn', description: 'descriptionEn' },
+  ru: { name: 'nameRu', description: 'descriptionRu' },
+  el: { name: 'nameEl', description: 'descriptionEl' },
+};
 
 // ─── Props ───────────────────────────────────────────────────────────────────
 
@@ -74,72 +98,73 @@ function cleanStrings<T extends Record<string, unknown>>(values: T): T {
   ) as T;
 }
 
-// ─── Shared fields JSX ───────────────────────────────────────────────────────
+// ─── Shared form body ────────────────────────────────────────────────────────
 
-interface ISharedFieldsProps {
+interface IFormBodyProps {
   control: ReturnType<typeof useForm<TEditValues>>['control'];
   errors: ReturnType<typeof useForm<TEditValues>>['formState']['errors'];
 }
 
-function SharedFields({ control, errors }: ISharedFieldsProps) {
+function TranslationTabs({ control }: IFormBodyProps) {
+  return (
+    <Tabs defaultValue="en">
+      <Tabs.List>
+        {LOCALES.map((locale) => (
+          <Tabs.Tab key={locale} value={locale}>
+            {LOCALE_LABELS[locale]}
+            {locale === 'en' && (
+              <Text component="span" c="red" ml={2}>
+                *
+              </Text>
+            )}
+          </Tabs.Tab>
+        ))}
+      </Tabs.List>
+
+      {LOCALES.map((locale) => {
+        const fields = LOCALE_FIELDS[locale];
+        return (
+          <Tabs.Panel key={locale} value={locale} pt="md">
+            <Stack gap="md">
+              <Controller
+                name={fields.name}
+                control={control}
+                render={({ field, fieldState }) => (
+                  <TextInput
+                    label="Name"
+                    placeholder={locale === 'en' ? 'e.g. Omodos' : undefined}
+                    required={locale === 'en'}
+                    error={fieldState.error?.message}
+                    {...field}
+                    value={field.value ?? ''}
+                  />
+                )}
+              />
+              <Controller
+                name={fields.description}
+                control={control}
+                render={({ field }) => (
+                  <Textarea
+                    label="Description"
+                    autosize
+                    minRows={3}
+                    {...field}
+                    value={field.value ?? ''}
+                  />
+                )}
+              />
+            </Stack>
+          </Tabs.Panel>
+        );
+      })}
+    </Tabs>
+  );
+}
+
+function LocationFields({ control, errors }: IFormBodyProps) {
   return (
     <>
-      <Title order={5} c="dimmed">
-        Names
-      </Title>
-
-      <Controller
-        name="nameEn"
-        control={control}
-        render={({ field }) => (
-          <TextInput
-            label="Name (English)"
-            placeholder="e.g. Omodos"
-            required
-            error={errors.nameEn?.message}
-            {...field}
-            value={field.value ?? ''}
-          />
-        )}
-      />
-
-      <Grid>
-        <Grid.Col span={{ base: 12, sm: 6 }}>
-          <Controller
-            name="nameRu"
-            control={control}
-            render={({ field }) => (
-              <TextInput
-                label="Name (Russian)"
-                placeholder="e.g. Омодос"
-                error={errors.nameRu?.message}
-                {...field}
-                value={field.value ?? ''}
-              />
-            )}
-          />
-        </Grid.Col>
-        <Grid.Col span={{ base: 12, sm: 6 }}>
-          <Controller
-            name="nameEl"
-            control={control}
-            render={({ field }) => (
-              <TextInput
-                label="Name (Greek)"
-                placeholder="e.g. Όμοδος"
-                error={errors.nameEl?.message}
-                {...field}
-                value={field.value ?? ''}
-              />
-            )}
-          />
-        </Grid.Col>
-      </Grid>
-
-      <Divider />
-      <Title order={5} c="dimmed">
-        Location
-      </Title>
+      <Divider label="Location" labelPosition="left" />
 
       <Grid>
         <Grid.Col span={{ base: 12, sm: 6 }}>
@@ -214,63 +239,13 @@ function SharedFields({ control, errors }: ISharedFieldsProps) {
           />
         </Grid.Col>
       </Grid>
-
-      <Divider />
-      <Title order={5} c="dimmed">
-        Descriptions
-      </Title>
-
-      <Controller
-        name="descriptionEn"
-        control={control}
-        render={({ field }) => (
-          <Textarea
-            label="Description (English)"
-            placeholder="Brief description of the village..."
-            autosize
-            minRows={3}
-            {...field}
-            value={field.value ?? ''}
-          />
-        )}
-      />
-      <Controller
-        name="descriptionRu"
-        control={control}
-        render={({ field }) => (
-          <Textarea
-            label="Description (Russian)"
-            autosize
-            minRows={3}
-            {...field}
-            value={field.value ?? ''}
-          />
-        )}
-      />
-      <Controller
-        name="descriptionEl"
-        control={control}
-        render={({ field }) => (
-          <Textarea
-            label="Description (Greek)"
-            autosize
-            minRows={3}
-            {...field}
-            value={field.value ?? ''}
-          />
-        )}
-      />
     </>
   );
 }
 
 // ─── Create form ─────────────────────────────────────────────────────────────
 
-function CreateForm({
-  onSubmit,
-  isPending,
-  error,
-}: Extract<TVillageFormProps, { mode: 'create' }>) {
+function CreateForm({ onSubmit, isPending, error }: Extract<TVillageFormProps, { mode: 'create' }>) {
   const {
     control,
     handleSubmit,
@@ -308,8 +283,16 @@ function CreateForm({
           )}
         />
 
-        <SharedFields
-          control={control as unknown as ISharedFieldsProps['control']}
+        <Title order={5} c="dimmed">
+          Translations
+        </Title>
+        <TranslationTabs
+          control={control as unknown as IFormBodyProps['control']}
+          errors={errors}
+        />
+
+        <LocationFields
+          control={control as unknown as IFormBodyProps['control']}
           errors={errors}
         />
 
@@ -340,11 +323,11 @@ function EditForm({
       nameEn: defaultValues.nameEn ?? '',
       nameRu: defaultValues.nameRu ?? '',
       nameEl: defaultValues.nameEl ?? '',
-      district: defaultValues.district ?? '',
-      region: defaultValues.region ?? '',
       descriptionEn: defaultValues.descriptionEn ?? '',
       descriptionRu: defaultValues.descriptionRu ?? '',
       descriptionEl: defaultValues.descriptionEl ?? '',
+      district: defaultValues.district ?? '',
+      region: defaultValues.region ?? '',
       centerLat: defaultValues.centerLat,
       centerLng: defaultValues.centerLng,
     },
@@ -375,7 +358,12 @@ function EditForm({
           </Text>
         </div>
 
-        <SharedFields control={control} errors={errors} />
+        <Title order={5} c="dimmed">
+          Translations
+        </Title>
+        <TranslationTabs control={control} errors={errors} />
+
+        <LocationFields control={control} errors={errors} />
 
         <Button type="submit" loading={isPending} mt="sm">
           Save changes

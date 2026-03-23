@@ -7,19 +7,21 @@ import { PrismaService } from '../../common/database';
 const villageSelect = {
   id: true,
   slug: true,
-  nameEn: true,
-  nameRu: true,
   nameEl: true,
   district: true,
   region: true,
-  descriptionEn: true,
-  descriptionRu: true,
-  descriptionEl: true,
   centerLat: true,
   centerLng: true,
   isActive: true,
   createdAt: true,
   updatedAt: true,
+  translations: {
+    select: {
+      locale: true,
+      name: true,
+      description: true,
+    },
+  },
 } satisfies Prisma.VillageSelect;
 
 export type TVillageRecord = Prisma.VillageGetPayload<{
@@ -34,14 +36,14 @@ export class VillagesRepository {
     return this.prisma.village.findMany({
       where: { isActive: true },
       select: villageSelect,
-      orderBy: { nameEn: 'asc' },
+      orderBy: { nameEl: 'asc' },
     });
   }
 
   findAll(): Promise<TVillageRecord[]> {
     return this.prisma.village.findMany({
       select: villageSelect,
-      orderBy: { nameEn: 'asc' },
+      orderBy: { nameEl: 'asc' },
     });
   }
 

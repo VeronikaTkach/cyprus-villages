@@ -21,12 +21,17 @@ export function VillageEditView({ id }: IVillageEditViewProps) {
   if (isLoading) return <LoadingState />;
   if (isError || !village) return <Text c="red">Village not found.</Text>;
 
+  function getT(locale: string) {
+    return village!.translations.find((t) => t.locale === locale);
+  }
+
   function handleSubmit(values: IUpdateVillageDto) {
     updateMutation.mutate(values);
   }
 
   function handleArchive() {
-    if (!window.confirm(`Archive "${village!.nameEn}"? It will no longer appear on the public site.`))
+    const enName = getT('en')?.name ?? village!.slug;
+    if (!window.confirm(`Archive "${enName}"? It will no longer appear on the public site.`))
       return;
     archiveMutation.mutate(id, {
       onSuccess: () => router.push('/admin/villages'),
@@ -46,7 +51,7 @@ export function VillageEditView({ id }: IVillageEditViewProps) {
   return (
     <>
       <Group justify="space-between" align="flex-start" mb="lg">
-        <SectionTitle title={`Edit: ${village.nameEn}`} />
+        <SectionTitle title={`Edit: ${getT('en')?.name ?? village.slug}`} />
         {village.isActive && (
           <Button
             variant="outline"
@@ -76,14 +81,14 @@ export function VillageEditView({ id }: IVillageEditViewProps) {
         mode="edit"
         slug={village.slug}
         defaultValues={{
-          nameEn: village.nameEn,
-          nameRu: village.nameRu ?? undefined,
-          nameEl: village.nameEl ?? undefined,
+          nameEn: getT('en')?.name,
+          nameRu: getT('ru')?.name,
+          nameEl: getT('el')?.name ?? village.nameEl ?? undefined,
+          descriptionEn: getT('en')?.description ?? undefined,
+          descriptionRu: getT('ru')?.description ?? undefined,
+          descriptionEl: getT('el')?.description ?? undefined,
           district: village.district ?? undefined,
           region: village.region ?? undefined,
-          descriptionEn: village.descriptionEn ?? undefined,
-          descriptionRu: village.descriptionRu ?? undefined,
-          descriptionEl: village.descriptionEl ?? undefined,
           centerLat: village.centerLat ?? undefined,
           centerLng: village.centerLng ?? undefined,
         }}

@@ -8,6 +8,13 @@ import {
 } from '@tabler/icons-react';
 
 export interface INavItem {
+  labelKey: 'home' | 'festivals' | 'villages' | 'map';
+  href: string;
+  icon: ReactNode;
+  exact?: boolean;
+}
+
+export interface IAdminNavItem {
   label: string;
   href: string;
   icon: ReactNode;
@@ -15,19 +22,14 @@ export interface INavItem {
 }
 
 export const publicNavItems: INavItem[] = [
-  { label: 'Home', href: '/', icon: <IconHome size={20} />, exact: true },
-  { label: 'Festivals', href: '/festivals', icon: <IconCalendar size={20} /> },
-  { label: 'Villages', href: '/villages', icon: <IconBuilding size={20} /> },
-  { label: 'Map', href: '/map', icon: <IconMap size={20} /> },
+  { labelKey: 'home', href: '/', icon: <IconHome size={20} />, exact: true },
+  { labelKey: 'festivals', href: '/festivals', icon: <IconCalendar size={20} /> },
+  { labelKey: 'villages', href: '/villages', icon: <IconBuilding size={20} /> },
+  { labelKey: 'map', href: '/map', icon: <IconMap size={20} /> },
 ];
 
-export const adminNavItems: INavItem[] = [
-  {
-    label: 'Dashboard',
-    href: '/admin',
-    icon: <IconLayoutDashboard size={20} />,
-    exact: true,
-  },
+export const adminNavItems: IAdminNavItem[] = [
+  { label: 'Dashboard', href: '/admin', icon: <IconLayoutDashboard size={20} />, exact: true },
   { label: 'Villages', href: '/admin/villages', icon: <IconBuilding size={20} /> },
   { label: 'Festivals', href: '/admin/festivals', icon: <IconCalendar size={20} /> },
 ];
