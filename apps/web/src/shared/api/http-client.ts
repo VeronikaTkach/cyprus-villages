@@ -10,7 +10,14 @@ export async function httpGet<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   if (!res.ok) {
-    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    let message = `HTTP ${res.status}: ${res.statusText}`;
+    try {
+      const body = (await res.json()) as { message?: string };
+      if (body.message) message = body.message;
+    } catch {
+      // ignore — keep status text
+    }
+    throw new Error(message);
   }
 
   return res.json() as Promise<T>;

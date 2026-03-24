@@ -12,7 +12,7 @@ export function VillagesListView() {
 
   if (isLoading) return <LoadingState />;
   if (isError) return <Text c="red">{t('loadError')}</Text>;
-  if (!villages?.length) return <EmptyState description={t('description')} />;
+  if (!villages?.length) return <EmptyState description={t('empty')} />;
 
   return (
     <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">

@@ -8,6 +8,7 @@
   "villages": {
     "title": "Villages",
     "description": "Traditional villages of Cyprus",
+    "empty": "No villages have been added yet.",
     "notFound": "Village not found.",
     "loadError": "Failed to load villages."
   },
