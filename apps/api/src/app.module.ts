@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { appConfig, databaseConfig, validateEnv } from './common/config';
+import { appConfig, authConfig, databaseConfig, validateEnv } from './common/config';
 import { DatabaseModule } from './common/database';
 import { HealthModule } from './modules/health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -18,7 +18,7 @@ import { AuditLogModule } from './modules/audit-log/audit-log.module';
       isGlobal: true,
       envFilePath: ['.env'],
       validate: validateEnv,
-      load: [appConfig, databaseConfig],
+      load: [appConfig, databaseConfig, authConfig],
     }),
     DatabaseModule,
     HealthModule,

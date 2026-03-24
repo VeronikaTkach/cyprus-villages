@@ -8,8 +8,10 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiConflictResponse,
   ApiCreatedResponse,
   ApiNotFoundResponse,
@@ -17,7 +19,12 @@ import {
   ApiOperation,
   ApiParam,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { UserRole } from '@prisma/client';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { VillagesService } from './villages.service';
 import { CreateVillageDto } from './dto/create-village.dto';
 import { UpdateVillageDto } from './dto/update-village.dto';
@@ -27,10 +34,12 @@ import { VillageResponseDto } from './dto/village-response.dto';
  * Admin endpoints for village management.
  * Includes inactive villages in reads; supports create, update, archive.
  * Route: /api/v1/admin/villages
- *
- * Note: no auth guards yet — to be added when the auth module is implemented.
  */
 @ApiTags('admin / villages')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.EDITOR, UserRole.CONTENT_ADMIN, UserRole.SUPER_ADMIN)
+@ApiUnauthorizedResponse({ description: 'Missing or invalid JWT token' })
 @Controller('admin/villages')
 export class VillagesAdminController {
   constructor(private readonly villagesService: VillagesService) {}

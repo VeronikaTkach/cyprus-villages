@@ -150,12 +150,13 @@
 
 #### A1 — Authentication (Admin Auth)
 
-- [ ] Backend: `auth` module — JWT (login, refresh), `AuthGuard`, `@Roles()` decorator
-- [ ] Backend: protect all `admin/*` controllers with `AuthGuard + RolesGuard`
+- [x] Backend: `auth` module — JWT login (`POST /auth/login`), `JwtAuthGuard`, `RolesGuard`, `@Roles()` decorator
+- [x] Backend: protect all `admin/*` controllers with `JwtAuthGuard + RolesGuard`
+- [x] Frontend: `/admin/login` page with login form
+- [x] Frontend: JWT token storage (Zustand + localStorage persist)
+- [x] Frontend: redirect to `/admin/login` on 401 and on missing token
 - [ ] Backend: `users` module — `POST /admin/users`, `PATCH /admin/users/:id`, `GET /admin/users`
-- [ ] Frontend: `/admin/login` page with login form
-- [ ] Frontend: JWT token storage (httpOnly cookie or Zustand + localStorage)
-- [ ] Frontend: redirect to `/admin/login` on 401; logout action
+- [ ] Frontend: logout action in admin header
 
 ---
 
@@ -290,7 +291,7 @@ A fully separate phase. Reuses the entire domain model and API.
 
 | Issue | Location | Priority |
 |-------|----------|----------|
-| Admin section has no authentication | All `/admin` routes | Critical |
+| Admin section has no logout button | Admin header | Low |
 | No pagination in admin list views | Villages, Festivals | Medium |
 | LocationPoints are fully modelled but never shown | Backend + Frontend | Medium |
 | Coordinates entered as plain number inputs | FestivalEditionForm, VillageForm | Low |

@@ -34,6 +34,14 @@ class EnvironmentVariables {
   @IsString()
   @IsOptional()
   CORS_ORIGIN: string = 'http://localhost:3000';
+
+  @IsString()
+  @IsOptional()
+  JWT_SECRET: string = 'dev-secret-change-in-production';
+
+  @IsString()
+  @IsOptional()
+  JWT_EXPIRES_IN: string = '7d';
 }
 
 export function validateEnv(config: Record<string, unknown>): EnvironmentVariables {

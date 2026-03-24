@@ -8,8 +8,10 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiConflictResponse,
   ApiCreatedResponse,
   ApiNotFoundResponse,
@@ -17,7 +19,12 @@ import {
   ApiOperation,
   ApiParam,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { UserRole } from '@prisma/client';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { FestivalsService } from './festivals.service';
 import { CreateFestivalDto } from './dto/create-festival.dto';
 import { UpdateFestivalDto } from './dto/update-festival.dto';
@@ -28,10 +35,12 @@ import { FestivalResponseDto } from './dto/festival-response.dto';
  * Includes inactive festivals in reads; supports create, update, archive.
  * All editions (any status) are included in responses.
  * Route: /api/v1/admin/festivals
- *
- * Note: no auth guards yet — to be added when the auth module is implemented.
  */
 @ApiTags('admin / festivals')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.EDITOR, UserRole.CONTENT_ADMIN, UserRole.SUPER_ADMIN)
+@ApiUnauthorizedResponse({ description: 'Missing or invalid JWT token' })
 @Controller('admin/festivals')
 export class FestivalsAdminController {
   constructor(private readonly festivalsService: FestivalsService) {}

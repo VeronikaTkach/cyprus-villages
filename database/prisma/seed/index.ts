@@ -21,6 +21,7 @@ import {
   UserRole,
   AuditAction,
 } from '@prisma/client';
+import * as bcrypt from 'bcryptjs';
 
 const adapter = new PrismaPg({
   connectionString:
@@ -53,10 +54,13 @@ async function clearAll(): Promise<void> {
 async function seed(): Promise<void> {
   // ── Users ─────────────────────────────────────────────────
 
+  const passwordHash = await bcrypt.hash('Admin1234!', 10);
+
   const adminUser = await prisma.user.create({
     data: {
       email: 'admin@cyprus-villages.dev',
       name: 'Admin',
+      passwordHash,
       role: UserRole.SUPER_ADMIN,
       isActive: true,
     },
