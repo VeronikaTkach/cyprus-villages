@@ -14,7 +14,10 @@
   },
   "festivals": {
     "title": "Festivals",
-    "description": "Festival calendar and events"
+    "description": "Festival calendar and events",
+    "empty": "No festivals have been added yet.",
+    "notFound": "Festival not found.",
+    "loadError": "Failed to load festivals."
   },
   "map": {
     "title": "Map",

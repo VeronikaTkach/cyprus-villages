@@ -1,0 +1,50 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { Text } from '@mantine/core';
+import { LoadingState } from '@/shared/ui';
+import { FestivalEditionForm } from '@/features/admin-festival';
+import { useAdminFestival, getFestivalTranslation } from '@/entities/festival';
+import { useCreateFestivalEdition } from '@/entities/festival-edition';
+import type { ICreateFestivalEditionDto } from '@/entities/festival-edition';
+
+interface IFestivalEditionCreateViewProps {
+  festivalId: number;
+}
+
+export function FestivalEditionCreateView({ festivalId }: IFestivalEditionCreateViewProps) {
+  const router = useRouter();
+  const { data: festival, isLoading, isError } = useAdminFestival(festivalId);
+  const mutation = useCreateFestivalEdition();
+
+  if (isLoading) return <LoadingState />;
+  if (isError || !festival) return <Text c="red">Festival not found.</Text>;
+
+  function handleSubmit(values: ICreateFestivalEditionDto) {
+    mutation.mutate(values, {
+      onSuccess: (created) => {
+        router.push(`/admin/festival-editions/${created.id}/edit`);
+      },
+    });
+  }
+
+  const errorMessage =
+    mutation.isError && mutation.error instanceof Error ? mutation.error.message : null;
+
+  const enTitle = getFestivalTranslation(festival, 'en')?.title ?? festival.slug;
+
+  return (
+    <>
+      <Text size="sm" c="dimmed" mb="md">
+        Adding edition for: <strong>{festival.titleEl ?? enTitle}</strong>
+      </Text>
+      <FestivalEditionForm
+        mode="create"
+        festivalId={festivalId}
+        onSubmit={handleSubmit}
+        isPending={mutation.isPending}
+        error={errorMessage}
+      />
+    </>
+  );
+}
