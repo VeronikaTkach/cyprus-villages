@@ -134,15 +134,10 @@ model Festival {
   slug      String           @unique
   villageId Int
 
-  // Multilingual titles
-  titleEn   String
-  titleRu   String?
+  // Greek title — displayed prominently above the localised title.
+  // Kept as a direct column because it is always shown regardless of the
+  // active locale (it is the "authentic" festival name, not just one translation).
   titleEl   String?
-
-  // Multilingual short descriptions
-  shortDescriptionEn String? @db.Text
-  shortDescriptionRu String? @db.Text
-  shortDescriptionEl String? @db.Text
 
   category  FestivalCategory @default(OTHER)
 
@@ -153,13 +148,30 @@ model Festival {
   updatedAt DateTime @updatedAt
 
   // Relations
-  village  Village          @relation(fields: [villageId], references: [id])
-  editions FestivalEdition[]
-  media    Media[]
+  village      Village             @relation(fields: [villageId], references: [id])
+  editions     FestivalEdition[]
+  translations FestivalTranslation[]
+  media        Media[]
 
   @@index([villageId])
   @@index([isActive])
   @@index([category])
+}
+
+// One row per locale per festival.
+// Adding a new language never requires a schema migration — just add rows.
+model FestivalTranslation {
+  id          Int     @id @default(autoincrement())
+  festivalId  Int
+  locale      String  // 'en' | 'ru' | 'el' | any future locale
+  title       String
+  description String? @db.Text
+
+  festival    Festival @relation(fields: [festivalId], references: [id], onDelete: Cascade)
+
+  @@unique([festivalId, locale])
+  @@index([festivalId])
+  @@index([locale])
 }
 
 // ─────────────────────────────────────────────────────────────

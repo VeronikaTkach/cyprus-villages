@@ -186,13 +186,21 @@ async function seed(): Promise<void> {
     data: {
       slug: 'omodos-wine-festival',
       villageId: omodos.id,
-      titleEn: 'Omodos Wine Festival',
-      titleRu: 'Омодосский винный фестиваль',
       titleEl: 'Φεστιβάλ Κρασιού Ομοδού',
-      shortDescriptionEn:
-        'Annual celebration of local wine in the heart of Omodos village, featuring tastings, traditional music, and local food.',
       category: FestivalCategory.WINE,
       isActive: true,
+      translations: {
+        create: [
+          {
+            locale: 'en',
+            title: 'Omodos Wine Festival',
+            description:
+              'Annual celebration of local wine in the heart of Omodos village, featuring tastings, traditional music, and local food.',
+          },
+          { locale: 'ru', title: 'Омодосский винный фестиваль', description: null },
+          { locale: 'el', title: 'Φεστιβάλ Κρασιού Ομοδού', description: null },
+        ],
+      },
     },
   });
 
@@ -200,13 +208,21 @@ async function seed(): Promise<void> {
     data: {
       slug: 'omodos-holy-cross',
       villageId: omodos.id,
-      titleEn: 'Holy Cross Festival',
-      titleRu: 'Праздник Святого Креста',
       titleEl: 'Κατακλυσμός Τιμίου Σταυρού',
-      shortDescriptionEn:
-        'Religious feast at the Timios Stavros Monastery in Omodos, marking the Exaltation of the Holy Cross with a procession and liturgy.',
       category: FestivalCategory.RELIGIOUS,
       isActive: true,
+      translations: {
+        create: [
+          {
+            locale: 'en',
+            title: 'Holy Cross Festival',
+            description:
+              'Religious feast at the Timios Stavros Monastery in Omodos, marking the Exaltation of the Holy Cross with a procession and liturgy.',
+          },
+          { locale: 'ru', title: 'Праздник Святого Креста', description: null },
+          { locale: 'el', title: 'Κατακλυσμός Τιμίου Σταυρού', description: null },
+        ],
+      },
     },
   });
 
@@ -214,13 +230,21 @@ async function seed(): Promise<void> {
     data: {
       slug: 'lefkara-traditional-festival',
       villageId: lefkara.id,
-      titleEn: 'Lefkara Traditional Festival',
-      titleRu: 'Традиционный фестиваль Лефкары',
       titleEl: 'Παραδοσιακή Γιορτή Λεύκαρας',
-      shortDescriptionEn:
-        "Annual summer festival celebrating the village's lace-making heritage, traditional crafts, folk music, and local cuisine.",
       category: FestivalCategory.CULTURAL,
       isActive: true,
+      translations: {
+        create: [
+          {
+            locale: 'en',
+            title: 'Lefkara Traditional Festival',
+            description:
+              "Annual summer festival celebrating the village's lace-making heritage, traditional crafts, folk music, and local cuisine.",
+          },
+          { locale: 'ru', title: 'Традиционный фестиваль Лефкары', description: null },
+          { locale: 'el', title: 'Παραδοσιακή Γιορτή Λεύκαρας', description: null },
+        ],
+      },
     },
   });
 
@@ -228,13 +252,21 @@ async function seed(): Promise<void> {
     data: {
       slug: 'pachna-wine-festival',
       villageId: pachna.id,
-      titleEn: 'Pachna Wine Festival',
-      titleRu: 'Винный фестиваль Пахны',
       titleEl: 'Φεστιβάλ Κρασιού Πάχνας',
-      shortDescriptionEn:
-        'Local wine festival in Pachna village, celebrating the grape harvest season with tastings from nearby Krasochoria wineries.',
       category: FestivalCategory.WINE,
       isActive: true,
+      translations: {
+        create: [
+          {
+            locale: 'en',
+            title: 'Pachna Wine Festival',
+            description:
+              'Local wine festival in Pachna village, celebrating the grape harvest season with tastings from nearby Krasochoria wineries.',
+          },
+          { locale: 'ru', title: 'Винный фестиваль Пахны', description: null },
+          { locale: 'el', title: 'Φεστιβάλ Κρασιού Πάχνας', description: null },
+        ],
+      },
     },
   });
 
