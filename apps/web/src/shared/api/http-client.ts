@@ -8,7 +8,11 @@ function getAuthHeaders(): Record<string, string> {
 
 function handleUnauthorized(): void {
   useAuthStore.getState().clearToken();
-  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
+  if (
+    typeof window !== 'undefined' &&
+    window.location.pathname.startsWith('/admin') &&
+    window.location.pathname !== '/admin/login'
+  ) {
     window.location.replace('/admin/login');
   }
 }
