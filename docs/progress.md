@@ -137,11 +137,18 @@
 
 ---
 
-## What is not yet implemented — planned steps
+## What is not yet implemented — planned phases
 
-### Step 1 — Authentication (Admin Auth)
+---
 
-Without this the entire admin section is publicly accessible.
+### Phase A — Critical blockers
+
+> The admin section is currently unprotected: any visitor can read, create, and
+> modify data. Nothing else in the roadmap is safe to ship publicly until access
+> control is in place. This phase must be completed before any other work is
+> released to a real environment.
+
+#### A1 — Authentication (Admin Auth)
 
 - [ ] Backend: `auth` module — JWT (login, refresh), `AuthGuard`, `@Roles()` decorator
 - [ ] Backend: protect all `admin/*` controllers with `AuthGuard + RolesGuard`
@@ -152,7 +159,14 @@ Without this the entire admin section is publicly accessible.
 
 ---
 
-### Step 2 — LocationPoint CRUD
+### Phase B — Core domain completion
+
+> The domain model is fully defined in the schema but LocationPoint — one of the
+> central entities — has zero implementation. Maps currently show only the
+> denormalised venue/parking fields from FestivalEdition. This phase brings the
+> model to the state the architecture intended from the start.
+
+#### B1 — LocationPoint CRUD
 
 The model is fully defined in the schema but has no implementation whatsoever.
 
@@ -164,7 +178,14 @@ The model is fully defined in the schema but has no implementation whatsoever.
 
 ---
 
-### Step 3 — Festival filtering and search
+### Phase C — Public UX improvements
+
+> With auth and the domain model complete, the focus shifts to the user-facing
+> product. The festival list currently has no filtering or discovery features,
+> and the village page does not show related festivals. This phase makes the
+> public site genuinely useful as a festival calendar.
+
+#### C1 — Festival filtering and search
 
 Currently the festival list loads in full with no filtering.
 
@@ -174,9 +195,14 @@ Currently the festival list loads in full with no filtering.
 - [ ] Frontend: update `usePublicFestivals` to accept and forward filter params
 - [ ] Frontend: sync active filters to URL search params
 
----
+#### C2 — Village page: festival list
 
-### Step 4 — Festival calendar view
+Currently the village detail page shows only description and a map.
+
+- [ ] Backend: `GET /villages/:slug` — include `festivals[]` with their active editions
+- [ ] Frontend: "Festivals" section on `_VillageDetailView` — list of FestivalCards linked to the village
+
+#### C3 — Festival calendar view
 
 - [ ] Frontend: calendar/timeline layout for `/[locale]/festivals` — grouped by month
 - [ ] Frontend: "Coming soon" / "Happening now" badge on festival cards
@@ -184,7 +210,15 @@ Currently the festival list loads in full with no filtering.
 
 ---
 
-### Step 5 — Media
+### Phase D — Platform hardening and expansion
+
+> With a secure, complete, and usable product in place, this phase covers quality
+> infrastructure (tests, CI), content richness (media, coord picker), and
+> progressive platform targets (PWA, Telegram Mini App). Items within this phase
+> can be tackled largely in parallel and in the order that best fits current
+> priorities.
+
+#### D1 — Media
 
 The model exists in the schema; no functionality is implemented.
 
@@ -193,9 +227,7 @@ The model exists in the schema; no functionality is implemented.
 - [ ] Frontend: render cover/gallery images on public pages
 - [ ] Frontend: `entities/media` — types and queries
 
----
-
-### Step 6 — Map coordinate picker (Admin)
+#### D2 — Map coordinate picker (Admin)
 
 Currently coordinates are entered as plain numbers in input fields.
 
@@ -203,18 +235,7 @@ Currently coordinates are entered as plain numbers in input fields.
 - [ ] Frontend: `features/admin-festival` — clickable map in FestivalEditionForm for venue and parking coords
 - [ ] Shared: `MapPickerControl` in `shared/ui/map` — map component that emits a lat/lng on click
 
----
-
-### Step 7 — Village page: festival list
-
-Currently the village detail page shows only description and a map.
-
-- [ ] Backend: `GET /villages/:slug` — include `festivals[]` with their active editions
-- [ ] Frontend: "Festivals" section on `_VillageDetailView` — list of FestivalCards linked to the village
-
----
-
-### Step 8 — Testing foundation (Vitest)
+#### D3 — Testing foundation (Vitest)
 
 - [ ] Configure Vitest in `apps/web`
 - [ ] Test utilities: render helpers, QueryClient mock, Mantine provider wrapper
@@ -222,9 +243,7 @@ Currently the village detail page shows only description and a map.
 - [ ] Unit tests: entity model functions
 - [ ] CI: run lint + typecheck + tests on every PR (GitHub Actions or equivalent)
 
----
-
-### Step 9 — E2E tests (Playwright)
+#### D4 — E2E tests (Playwright)
 
 - [ ] Configure Playwright: Chromium + WebKit (Safari-like), mobile viewport 390px
 - [ ] Core public flows: home → festival list → festival detail
@@ -232,9 +251,7 @@ Currently the village detail page shows only description and a map.
 - [ ] Admin flows: create village, create festival, publish edition
 - [ ] Map smoke test: verify tiles and markers load without errors
 
----
-
-### Step 10 — PWA Phase 2 (Installability)
+#### D5 — PWA Phase 2 (Installability)
 
 Phase 1 (manifest, meta tags) is already complete.
 
@@ -243,9 +260,7 @@ Phase 1 (manifest, meta tags) is already complete.
 - [ ] Add `<link rel="apple-touch-icon">` in `app/layout.tsx`
 - [ ] Verify installability criteria in Chrome DevTools / Lighthouse
 
----
-
-### Step 11 — Service worker and offline cache (PWA Phase 3)
+#### D6 — Service worker and offline cache (PWA Phase 3)
 
 Only after public flows are stable and tested.
 
@@ -254,16 +269,12 @@ Only after public flows are stable and tested.
 - [ ] Offline fallback page
 - [ ] Lighthouse PWA audit in CI
 
----
-
-### Step 12 — Audit Log UI
+#### D7 — Audit Log UI
 
 - [ ] Backend: `GET /admin/audit-log` with pagination and filters (entityType, action, userId, dateRange)
 - [ ] Frontend: `/admin/audit-log` page — table showing entityType, action, user, date, diff (before/after JSON)
 
----
-
-### Step 13 — MVP2: Telegram Mini App
+#### D8 — MVP2: Telegram Mini App
 
 A fully separate phase. Reuses the entire domain model and API.
 
