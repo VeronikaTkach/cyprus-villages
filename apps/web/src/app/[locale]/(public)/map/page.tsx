@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { PageContainer, SectionTitle, EmptyState } from '@/shared/ui';
+import { PageContainer, SectionTitle } from '@/shared/ui';
+import { MapView } from './_MapView';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('map');
@@ -13,7 +14,7 @@ export default async function MapPage() {
   return (
     <PageContainer>
       <SectionTitle title={t('title')} description={t('description')} />
-      <EmptyState description="Map coming soon" />
+      <MapView />
     </PageContainer>
   );
 }

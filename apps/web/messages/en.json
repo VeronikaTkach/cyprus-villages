@@ -21,7 +21,8 @@
   },
   "map": {
     "title": "Map",
-    "description": "Villages and festivals on the map"
+    "description": "Villages and festivals on the map",
+    "loadError": "Failed to load map data."
   },
   "home": {
     "title": "Cyprus Villages",

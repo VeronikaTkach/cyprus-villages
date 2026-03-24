@@ -23,3 +23,6 @@ export { PageContainer } from './PageContainer';
 export { SectionTitle } from './SectionTitle';
 export { EmptyState } from './EmptyState';
 export { LoadingState } from './LoadingState';
+
+export { LeafletMap } from './map';
+export type { ILeafletMapProps, IMapMarker, TMapMarkerKind } from './map';

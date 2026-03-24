@@ -1,9 +1,10 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { Stack, Title, Text, Group, Divider } from '@mantine/core';
+import { Divider, Group, Stack, Text, Title } from '@mantine/core';
 import { IconMapPin } from '@tabler/icons-react';
-import { LoadingState } from '@/shared/ui';
+import { LoadingState, LeafletMap } from '@/shared/ui';
+import type { IMapMarker } from '@/shared/ui';
 import { usePublicVillage, getTranslation } from '@/entities/village';
 
 interface IVillageDetailViewProps {
@@ -19,6 +20,18 @@ export function VillageDetailView({ slug }: IVillageDetailViewProps) {
   if (isError || !village) return <Text c="red">{t('notFound')}</Text>;
 
   const translation = getTranslation(village, locale);
+
+  const markers: IMapMarker[] =
+    village.centerLat !== null && village.centerLng !== null
+      ? [
+          {
+            lat: village.centerLat,
+            lng: village.centerLng,
+            kind: 'village',
+            popup: village.nameEl ?? translation?.name ?? village.slug,
+          },
+        ]
+      : [];
 
   return (
     <Stack gap="lg">
@@ -48,6 +61,18 @@ export function VillageDetailView({ slug }: IVillageDetailViewProps) {
           <Text size="md" style={{ lineHeight: 1.7 }}>
             {translation.description}
           </Text>
+        </>
+      )}
+
+      {markers.length > 0 && (
+        <>
+          <Divider />
+          <LeafletMap
+            markers={markers}
+            center={[markers[0].lat, markers[0].lng]}
+            zoom={14}
+            height={280}
+          />
         </>
       )}
     </Stack>

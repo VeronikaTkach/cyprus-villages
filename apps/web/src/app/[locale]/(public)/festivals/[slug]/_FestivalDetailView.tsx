@@ -1,16 +1,10 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import {
-  Badge,
-  Divider,
-  Group,
-  Stack,
-  Text,
-  Title,
-} from '@mantine/core';
+import { Badge, Divider, Group, Stack, Text, Title } from '@mantine/core';
 import { IconCalendar, IconMapPin } from '@tabler/icons-react';
-import { LoadingState } from '@/shared/ui';
+import { LoadingState, LeafletMap } from '@/shared/ui';
+import type { IMapMarker } from '@/shared/ui';
 import {
   usePublicFestival,
   getFestivalTranslation,
@@ -36,6 +30,31 @@ export function FestivalDetailView({ slug }: IFestivalDetailViewProps) {
 
   const translation = getFestivalTranslation(festival, locale);
   const latestEdition = getLatestEdition(festival);
+
+  // Build venue + parking markers from the latest edition
+  const markers: IMapMarker[] = [];
+  if (latestEdition) {
+    if (latestEdition.venueLat !== null && latestEdition.venueLng !== null) {
+      markers.push({
+        lat: latestEdition.venueLat,
+        lng: latestEdition.venueLng,
+        kind: 'venue',
+        popup: latestEdition.venueName ?? 'Venue',
+      });
+    }
+    if (latestEdition.parkingLat !== null && latestEdition.parkingLng !== null) {
+      markers.push({
+        lat: latestEdition.parkingLat,
+        lng: latestEdition.parkingLng,
+        kind: 'parking',
+        popup: latestEdition.parkingName ?? 'Parking',
+      });
+    }
+  }
+
+  // Center on venue if available, otherwise parking, otherwise Cyprus default
+  const mapCenter: [number, number] | undefined =
+    markers.length > 0 ? [markers[0].lat, markers[0].lng] : undefined;
 
   return (
     <Stack gap="lg">
@@ -82,8 +101,15 @@ export function FestivalDetailView({ slug }: IFestivalDetailViewProps) {
 
       {latestEdition?.venueName && (
         <Group gap="xs">
-          <IconMapPin size={16} color="var(--mantine-color-teal-6)" />
+          <IconMapPin size={16} color="var(--mantine-color-blue-6)" />
           <Text c="dimmed">{latestEdition.venueName}</Text>
+        </Group>
+      )}
+
+      {latestEdition?.parkingName && (
+        <Group gap="xs">
+          <IconMapPin size={16} color="var(--mantine-color-orange-6)" />
+          <Text c="dimmed">{latestEdition.parkingName}</Text>
         </Group>
       )}
 
@@ -93,6 +119,18 @@ export function FestivalDetailView({ slug }: IFestivalDetailViewProps) {
           <Text size="md" style={{ lineHeight: 1.7 }}>
             {translation.description}
           </Text>
+        </>
+      )}
+
+      {markers.length > 0 && (
+        <>
+          <Divider />
+          <LeafletMap
+            markers={markers}
+            center={mapCenter}
+            zoom={15}
+            height={280}
+          />
         </>
       )}
     </Stack>

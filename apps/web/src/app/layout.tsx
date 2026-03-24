@@ -1,5 +1,6 @@
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
+import 'leaflet/dist/leaflet.css';
 import { ColorSchemeScript } from '@mantine/core';
 import { Providers } from './providers/providers';
 import type { Metadata, Viewport } from 'next';
