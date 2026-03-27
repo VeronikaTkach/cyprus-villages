@@ -6,6 +6,7 @@ import { Alert, Badge, Button, Group, Text } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { SectionTitle, LoadingState } from '@/shared/ui';
 import { FestivalEditionForm } from '@/features/admin-festival';
+import { LocationPointsSection } from '@/features/admin-location-point';
 import {
   useAdminEdition,
   useUpdateFestivalEdition,
@@ -150,6 +151,8 @@ export function FestivalEditionEditView({ id }: IFestivalEditionEditViewProps) {
         isPending={updateMutation.isPending}
         error={updateError}
       />
+
+      <LocationPointsSection context={{ type: 'edition', festivalEditionId: id }} />
     </>
   );
 }

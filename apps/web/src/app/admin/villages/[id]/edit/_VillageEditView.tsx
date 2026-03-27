@@ -5,6 +5,7 @@ import { Alert, Button, Group, Text } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { SectionTitle, LoadingState } from '@/shared/ui';
 import { VillageForm } from '@/features/admin-village';
+import { LocationPointsSection } from '@/features/admin-location-point';
 import { useAdminVillage, useUpdateVillage, useArchiveVillage } from '@/entities/village';
 import type { IUpdateVillageDto } from '@/entities/village';
 
@@ -96,6 +97,8 @@ export function VillageEditView({ id }: IVillageEditViewProps) {
         isPending={updateMutation.isPending}
         error={updateError}
       />
+
+      <LocationPointsSection context={{ type: 'village', villageId: id }} />
     </>
   );
 }
