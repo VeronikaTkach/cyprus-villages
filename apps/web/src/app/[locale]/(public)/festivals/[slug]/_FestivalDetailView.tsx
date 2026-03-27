@@ -15,6 +15,7 @@ import {
   EDITION_STATUS_COLORS,
   formatDateRange,
 } from '@/entities/festival';
+import { usePublicMapPoints, locationPointTypeToMarkerKind } from '@/entities/location-point';
 
 interface IFestivalDetailViewProps {
   slug: string;
@@ -24,6 +25,7 @@ export function FestivalDetailView({ slug }: IFestivalDetailViewProps) {
   const locale = useLocale();
   const t = useTranslations('festivals');
   const { data: festival, isLoading, isError } = usePublicFestival(slug);
+  const { data: allMapPoints } = usePublicMapPoints();
 
   if (isLoading) return <LoadingState />;
   if (isError || !festival) return <Text c="red">{t('notFound')}</Text>;
@@ -31,7 +33,7 @@ export function FestivalDetailView({ slug }: IFestivalDetailViewProps) {
   const translation = getFestivalTranslation(festival, locale);
   const latestEdition = getLatestEdition(festival);
 
-  // Build venue + parking markers from the latest edition
+  // Build venue + parking markers from the latest edition (denormalised fields)
   const markers: IMapMarker[] = [];
   if (latestEdition) {
     if (latestEdition.venueLat !== null && latestEdition.venueLng !== null) {
@@ -48,6 +50,18 @@ export function FestivalDetailView({ slug }: IFestivalDetailViewProps) {
         lng: latestEdition.parkingLng,
         kind: 'parking',
         popup: latestEdition.parkingName ?? 'Parking',
+      });
+    }
+
+    // Add LocationPoint markers for this edition
+    for (const point of (allMapPoints ?? []).filter(
+      (p) => p.festivalEditionId === latestEdition.id,
+    )) {
+      markers.push({
+        lat: point.lat,
+        lng: point.lng,
+        kind: locationPointTypeToMarkerKind(point.type),
+        popup: point.label,
       });
     }
   }

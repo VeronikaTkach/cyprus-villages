@@ -1,4 +1,4 @@
-export type TMapMarkerKind = 'village' | 'venue' | 'parking';
+export type TMapMarkerKind = 'village' | 'venue' | 'parking' | 'point';
 
 export interface IMapMarker {
   lat: number;

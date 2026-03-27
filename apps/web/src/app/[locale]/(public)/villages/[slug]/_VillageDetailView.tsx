@@ -6,6 +6,7 @@ import { IconMapPin } from '@tabler/icons-react';
 import { LoadingState, LeafletMap } from '@/shared/ui';
 import type { IMapMarker } from '@/shared/ui';
 import { usePublicVillage, getTranslation } from '@/entities/village';
+import { usePublicMapPoints, locationPointTypeToMarkerKind } from '@/entities/location-point';
 
 interface IVillageDetailViewProps {
   slug: string;
@@ -15,23 +16,32 @@ export function VillageDetailView({ slug }: IVillageDetailViewProps) {
   const locale = useLocale();
   const t = useTranslations('villages');
   const { data: village, isLoading, isError } = usePublicVillage(slug);
+  const { data: allMapPoints } = usePublicMapPoints();
 
   if (isLoading) return <LoadingState />;
   if (isError || !village) return <Text c="red">{t('notFound')}</Text>;
 
   const translation = getTranslation(village, locale);
 
-  const markers: IMapMarker[] =
-    village.centerLat !== null && village.centerLng !== null
-      ? [
-          {
-            lat: village.centerLat,
-            lng: village.centerLng,
-            kind: 'village',
-            popup: village.nameEl ?? translation?.name ?? village.slug,
-          },
-        ]
-      : [];
+  const markers: IMapMarker[] = [];
+
+  if (village.centerLat !== null && village.centerLng !== null) {
+    markers.push({
+      lat: village.centerLat,
+      lng: village.centerLng,
+      kind: 'village',
+      popup: village.nameEl ?? translation?.name ?? village.slug,
+    });
+  }
+
+  for (const point of (allMapPoints ?? []).filter((p) => p.villageId === village.id)) {
+    markers.push({
+      lat: point.lat,
+      lng: point.lng,
+      kind: locationPointTypeToMarkerKind(point.type),
+      popup: point.label,
+    });
+  }
 
   return (
     <Stack gap="lg">

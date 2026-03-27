@@ -6,12 +6,13 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import type { IMapMarker, TMapMarkerKind } from './types';
 
 // ─── Marker colors ─────────────────────────────────────────────────────────────
-// village = teal (matches app theme), venue = blue, parking = orange
+// village = teal (matches app theme), venue = blue, parking = orange, point = gray
 
 const MARKER_COLORS: Record<TMapMarkerKind, string> = {
   village: '#12b886',
   venue: '#228be6',
   parking: '#fd7e14',
+  point: '#868e96',
 };
 
 function makeIcon(kind: TMapMarkerKind) {
@@ -31,6 +32,7 @@ const ICONS: Record<TMapMarkerKind, L.DivIcon> = {
   village: makeIcon('village'),
   venue: makeIcon('venue'),
   parking: makeIcon('parking'),
+  point: makeIcon('point'),
 };
 
 // ─── Props ─────────────────────────────────────────────────────────────────────
