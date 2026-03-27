@@ -1,6 +1,23 @@
 # Cyprus Villages — Project Progress
 
-> Last updated: 2026-03-27
+> Last updated: 2026-03-27 (audit pass: LocationPoint complete, C1 backend complete, security.md created)
+
+---
+
+## Architecture audit — 2026-03-27
+
+Full architecture consistency audit completed. Overall conclusion: the architecture is holding well — all core domain invariants, FSD layer boundaries, and backend discipline are respected. No major drift found. Three concrete follow-ups identified (stale audit log TODO comments, undocumented latest-edition-only map rule, undocumented `enableImplicitConversion` setting).
+
+Full snapshot: [`docs/audits/2026-03-27-architecture-audit.md`](audits/2026-03-27-architecture-audit.md)
+
+---
+
+## Next priority
+
+1. **Frontend festival filters** — wire `category`, `villageId`, `year`, `month` filter UI; sync active filters to URL search params (Phase C1 frontend).
+2. **Auth hardening** — migrate token storage to httpOnly cookies; add rate limiting on `/auth/login` (see `security.md`).
+3. **Audit log user attribution** — propagate `@CurrentUser()` from admin controller methods into service calls; eliminate `userId: null` writes.
+4. **Calendar / timeline view** — grouped-by-month layout on the public festivals page (Phase C3).
 
 ---
 
@@ -51,8 +68,9 @@
 | Module | Public API | Admin API | Notes |
 |--------|-----------|-----------|-------|
 | `villages` | GET /villages, GET /villages/:slug | GET, POST, PATCH :id, PATCH :id/archive | Translations upsert, AuditLog |
-| `festivals` | GET /festivals, GET /festivals/:slug | GET, POST, PATCH :id, PATCH :id/archive | Translations upsert, AuditLog |
+| `festivals` | GET /festivals?category&villageId&year&month, GET /festivals/:slug | GET, POST, PATCH :id, PATCH :id/archive | Translations upsert, AuditLog; month filter applied in-memory (see architecture.md) |
 | `festival-editions` | — (via festival) | GET /festival/:fid, GET :id, POST, PATCH :id, PATCH :id/publish, PATCH :id/archive, PATCH :id/cancel | Status transitions, publishedAt |
+| `location-points` | GET /map/points | GET /village/:id, GET /festival-edition/:id, GET /:id, POST, PATCH /:id, PATCH /:id/archive | Dual-ownership (villageId / festivalEditionId), orphan-row invariant enforced at service layer |
 | `health` | GET /health | — | Liveness probe |
 
 **Auth (`auth` module):**
@@ -62,10 +80,9 @@
 - All admin controllers protected: `EDITOR`, `CONTENT_ADMIN`, `SUPER_ADMIN` allowed
 
 **Stub modules (module wired, no implementation):**
-- `location-points` — module created, no controller/service/repository
 - `media` — module created, no implementation
 - `users` — module created, `UsersService.findByEmail()` implemented (used by auth)
-- `audit-log` — module created; log writes are handled inside the villages/festivals services
+- `audit-log` — module created; log writes are handled inside each domain service directly
 
 **Consistent across all implemented modules:**
 - DTOs + class-validator on all incoming data
@@ -175,15 +192,13 @@
 > denormalised venue/parking fields from FestivalEdition. This phase brings the
 > model to the state the architecture intended from the start.
 
-#### B1 — LocationPoint CRUD
+#### B1 — LocationPoint CRUD ✓ COMPLETE
 
-The model is fully defined in the schema but has no implementation whatsoever.
-
-- [ ] Backend: `location-points` — DTOs, repository, service, admin controller (GET /village/:id, GET /edition/:id, POST, PATCH :id, DELETE :id)
-- [ ] Backend: public endpoint `GET /map/points` — all active points with coordinates
-- [ ] Frontend: `entities/location-point` — types, API functions, queries
-- [ ] Frontend: admin UI for managing points in the context of a village and a festival edition
-- [ ] Frontend: render LocationPoint markers on the village and festival detail maps
+- [x] Backend: `location-points` — DTOs, repository, service, admin controller (GET /village/:id, GET /festival-edition/:id, GET /:id, POST, PATCH /:id, PATCH /:id/archive)
+- [x] Backend: public endpoint `GET /map/points` — all active points with coordinates
+- [x] Frontend: `entities/location-point` — types, API functions, queries
+- [x] Frontend: admin UI for managing points in the context of a village and a festival edition
+- [x] Frontend: render LocationPoint markers on the village and festival detail maps and the overview map
 
 ---
 
@@ -198,7 +213,7 @@ The model is fully defined in the schema but has no implementation whatsoever.
 
 Currently the festival list loads in full with no filtering.
 
-- [ ] Backend: query parameters on `GET /festivals` — `?category=`, `?villageId=`, `?year=`, `?month=`, `?status=`
+- [x] Backend: query parameters on `GET /festivals` — `?category=`, `?villageId=`, `?year=`, `?month=` (month filtered in-memory; see architecture.md)
 - [ ] Backend: `GET /map/festivals` — lightweight endpoint for the map view (id, slug, titleEl, lat, lng)
 - [ ] Frontend: `features/filter-festivals` — filter UI (category, village, month)
 - [ ] Frontend: update `usePublicFestivals` to accept and forward filter params
@@ -299,12 +314,15 @@ A fully separate phase. Reuses the entire domain model and API.
 
 | Issue | Location | Priority |
 |-------|----------|----------|
+| JWT token stored in localStorage (XSS risk); target is httpOnly cookie — see security.md | `shared/lib/auth/auth-store.ts` | High |
+| No rate limiting on `POST /auth/login` | `auth.controller.ts` | High |
+| Audit log writes `userId: null` in all modules (auth user not propagated to service layer) | All domain services | Medium |
 | Admin section has no logout button | Admin header | Low |
-| No pagination in admin list views | Villages, Festivals | Medium |
-| LocationPoints are fully modelled but never shown | Backend + Frontend | Medium |
+| No pagination in admin list views | Villages, Festivals, LocationPoints | Medium |
 | Coordinates entered as plain number inputs | FestivalEditionForm, VillageForm | Low |
 | Media single-owner invariant not validated at service level | MediaService (not implemented) | Low |
-| LocationPoint orphan-row invariant not validated at service level | LocationPointsService (not implemented) | Low |
+| Admin UI does not support creating dual-ownership LocationPoints | `LocationPointForm` | Low |
+| Public map points filtered client-side on detail pages; see architecture.md | `_VillageDetailView`, `_FestivalDetailView` | Low |
 | `middleware.ts` uses deprecated API (build warning) | `apps/web/src/middleware.ts` | Low |
 | Home page `/[locale]/` is a placeholder | `(public)/page.tsx` | Low |
 | Admin dashboard `/admin` is a placeholder | `admin/page.tsx` | Low |

@@ -215,6 +215,19 @@ A log of administrative changes.
 
 ---
 
+## MVP trade-offs
+
+Several implementation simplifications are intentional for MVP1 and should not be treated as bugs or oversights. They were chosen to keep scope manageable while the dataset and team are small.
+
+Examples currently present in this document:
+- **In-memory month filtering** — `GET /festivals?month=` filters published editions in the application layer rather than SQL. Acceptable at current data volume; see *Schema design decisions* for the full rationale and future optimisation path.
+- **Client-side map point filtering** — village and festival detail pages fetch all active `LocationPoint` records and filter in the browser. Efficient while the point count is small; see *Maps strategy* for the planned scoped-endpoint improvement.
+- **Limited admin UI for LocationPoints** — the admin UI supports single-ownership point creation only. The domain and API support dual-ownership; the UI gap is intentional for MVP1; see *Schema design decisions*.
+
+Each trade-off is documented inline with its rationale and a defined improvement path. They should be revisited as data volume grows, the admin team expands, or product complexity increases.
+
+---
+
 ## Frontend architecture (FSD)
 The frontend is built using **Feature-Sliced Design**.
 
@@ -443,6 +456,24 @@ Three valid ownership states:
 
 An orphan row (both null) is invalid and must be rejected at the service layer.
 
+### LocationPoint ownership is immutable after creation
+
+Once a `LocationPoint` row is created, its `villageId` and `festivalEditionId` may not be changed via an update operation. Changing ownership is a semantic replacement, not an edit — the correct workflow is to archive the existing point and create a new one with the intended ownership.
+
+This is an intentional domain invariant, not an API limitation:
+- **Audit integrity:** the creation record carries ownership context. Silently reassigning ownership would make the audit trail misleading — a record created as "shuttle stop for the 2024 Limassol Wine Festival" should not become "permanent Omodos viewpoint" by patching a FK.
+- **Semantic clarity:** the two points are different domain objects. The archive + create workflow makes the intent explicit and preserves full history.
+
+### LocationPoint dual ownership — admin UI limitation
+
+The domain model and service layer support all three valid ownership states (village-only, edition-only, or both). The admin UI currently supports only single-ownership creation:
+- "Add point" from the village edit page creates a village-only point (`villageId` set, `festivalEditionId` null).
+- "Add point" from the festival edition edit page creates an edition-only point (`festivalEditionId` set, `villageId` null).
+
+Creating a dual-ownership point (both FKs set) is not exposed in the UI. This is an intentional MVP1 simplification — the use case exists but is uncommon and can be handled via the admin API or directly until a dedicated UI flow is warranted.
+
+This limitation is strictly in the admin UI. The domain model, service layer, and API all accept and validate dual-ownership records correctly.
+
 ### MediaKind is a presentation role enum
 
 `MediaKind` values (`GALLERY`, `COVER`, `THUMBNAIL`) describe the presentation role of a media asset, not its file type. All values are role-oriented.
@@ -454,6 +485,22 @@ This is intentional for MVP1 where only image files are supported. If other file
 The general product rule is to prefer archive/deactivate over hard delete. However, `DELETE` is kept in `AuditAction` because hard deletes can occur for legitimate technical or admin reasons (data-entry mistakes, GDPR erasure, duplicate records).
 
 Any hard delete must be logged using `AuditAction.DELETE` so the audit trail remains intact. `DELETE` in the audit log does not imply that hard delete is an approved business flow — it is the log entry for an exceptional action.
+
+### Festival filtering: month is partially in-memory (MVP simplification)
+
+`GET /api/v1/festivals` supports four optional query parameters: `category`, `villageId`, `year`, and `month`.
+
+`category` and `villageId` are applied at the database level. `year` is also applied at the database level via an `editions.some({ status: PUBLISHED, year })` subquery.
+
+`month` is currently applied in-memory: after the database returns festivals with their published editions, the service filters editions whose `startDate` falls in the requested month and drops festivals with no remaining editions.
+
+This is an intentional MVP simplification:
+- The dataset is small and in-memory filtering adds no meaningful overhead.
+- Moving month logic into SQL would require a date-extraction expression in the Prisma `where` clause, which increases query complexity for marginal gain at current scale.
+
+**Future optimisation:** if the dataset grows, month filtering should move fully to the database level (e.g. using a raw `EXTRACT(MONTH FROM "startDate") = $1` condition or a generated column). Any such migration must preserve two invariants:
+1. Filtering is applied only to `PUBLISHED` editions — draft, archived, and cancelled editions must never influence public results.
+2. `Festival` and `FestivalEdition` semantics must remain separate — a festival must not be excluded based on its own fields when the filter concern belongs to its editions.
 
 ### Time fields as "HH:mm" strings
 
@@ -488,6 +535,16 @@ The application must support an interactive map.
 - additional points of interest;
 - normalised `lat/lng` fields;
 - coordinate editing in the admin panel.
+
+### Public map points: client-side filtering on detail pages (MVP trade-off)
+
+The public map endpoint (`GET /api/v1/map/points`) returns all active `LocationPoint` records in a single response. On village and festival detail pages the frontend fetches this full dataset and filters client-side to the points relevant to the current entity.
+
+This is an intentional MVP trade-off:
+- The total number of active points is small; a single cached response is cheaper than per-entity round trips.
+- TanStack Query caches the result, so navigating between multiple detail pages reuses the same fetch.
+
+**Future improvement:** once the point count grows or per-entity performance becomes a concern, introduce scoped endpoints (`GET /map/points?villageId=` / `GET /map/points?festivalEditionId=`) or embed relevant points directly in the entity detail API responses. The client-side filtering logic can then be replaced with a dedicated query per page context.
 
 ---
 
