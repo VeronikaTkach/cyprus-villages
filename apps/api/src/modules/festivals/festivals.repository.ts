@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { FestivalCategory, FestivalEditionStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../common/database';
+
+interface IFindAllActiveFilters {
+  category?: FestivalCategory;
+  villageId?: number;
+  year?: number;
+}
 
 // Explicit field selection — predictable shape for all festival queries.
 // Editions are included ordered year-descending; translations ordered by locale
@@ -58,9 +64,28 @@ export type TFestivalRecord = Prisma.FestivalGetPayload<{
 export class FestivalsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAllActive(): Promise<TFestivalRecord[]> {
+  findAllActive(filters: IFindAllActiveFilters = {}): Promise<TFestivalRecord[]> {
+    const where: Prisma.FestivalWhereInput = { isActive: true };
+
+    if (filters.category !== undefined) {
+      where.category = filters.category;
+    }
+
+    if (filters.villageId !== undefined) {
+      where.villageId = filters.villageId;
+    }
+
+    if (filters.year !== undefined) {
+      where.editions = {
+        some: {
+          status: FestivalEditionStatus.PUBLISHED,
+          year: filters.year,
+        },
+      };
+    }
+
     return this.prisma.festival.findMany({
-      where: { isActive: true },
+      where,
       select: festivalSelect,
       orderBy: { titleEl: 'asc' },
     });

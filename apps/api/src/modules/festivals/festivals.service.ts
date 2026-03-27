@@ -8,6 +8,7 @@ import { PrismaService } from '../../common/database';
 import { FestivalsRepository, TFestivalRecord } from './festivals.repository';
 import { CreateFestivalDto } from './dto/create-festival.dto';
 import { UpdateFestivalDto } from './dto/update-festival.dto';
+import { PublicFestivalsFilterDto } from './dto/public-festivals-filter.dto';
 
 @Injectable()
 export class FestivalsService {
@@ -19,9 +20,29 @@ export class FestivalsService {
   // ── Public reads ──────────────────────────────────────────
   // Public callers only see PUBLISHED editions.
 
-  async getActiveFestivals(): Promise<TFestivalRecord[]> {
-    const festivals = await this.festivalsRepository.findAllActive();
-    return festivals.map((f) => this.filterPublishedEditions(f));
+  async getActiveFestivals(filters: PublicFestivalsFilterDto = {}): Promise<TFestivalRecord[]> {
+    const festivals = await this.festivalsRepository.findAllActive({
+      category: filters.category,
+      villageId: filters.villageId,
+      year: filters.year,
+    });
+
+    let results = festivals.map((f) => this.filterPublishedEditions(f));
+
+    // Month filter is applied in-memory after editions are restricted to PUBLISHED.
+    if (filters.month !== undefined) {
+      results = results
+        .map((f) => ({
+          ...f,
+          editions: f.editions.filter((e) => {
+            if (!e.startDate) return false;
+            return new Date(e.startDate).getUTCMonth() + 1 === filters.month;
+          }),
+        }))
+        .filter((f) => f.editions.length > 0);
+    }
+
+    return results;
   }
 
   async getFestivalBySlug(slug: string): Promise<TFestivalRecord> {
