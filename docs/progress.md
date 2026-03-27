@@ -1,6 +1,6 @@
 # Cyprus Villages — Project Progress
 
-> Last updated: 2026-03-24
+> Last updated: 2026-03-27
 
 ---
 
@@ -26,7 +26,7 @@
 - `FestivalEdition` — year, dates, isDateTba, times, venue, parking, status lifecycle, source tracking
 - `LocationPoint` — type, label, lat/lng, villageId?, festivalEditionId? (dual-ownership)
 - `Media` — url, alt, kind (GALLERY/COVER/THUMBNAIL), single-owner invariant
-- `User` — email, role (SUPER_ADMIN/CONTENT_ADMIN/EDITOR), isActive
+- `User` — email, passwordHash, role (SUPER_ADMIN/CONTENT_ADMIN/EDITOR), isActive
 - `AuditLog` — entityType, entityId, action, beforeJson, afterJson, userId
 
 **Migrations:**
@@ -34,11 +34,13 @@
 2. `20260320130127_rename_media_kind_image_to_gallery` — enum value rename
 3. `20260323120000_village_translations` — extracted VillageTranslation from flat columns
 4. `20260324120000_festival_translations` — extracted FestivalTranslation, preserved titleEl
+5. `20260324180000_user_password_hash` — added passwordHash column to User
 
 **Seed:**
 - Villages (Omodos, Lefkara, Paphos, etc.) with translations
 - Festivals with translations linked to villages
 - Festival editions with dates, statuses, and coordinates
+- Admin user (`admin@cyprus-villages.dev`, role SUPER_ADMIN, password hashed)
 
 ---
 
@@ -53,11 +55,16 @@
 | `festival-editions` | — (via festival) | GET /festival/:fid, GET :id, POST, PATCH :id, PATCH :id/publish, PATCH :id/archive, PATCH :id/cancel | Status transitions, publishedAt |
 | `health` | GET /health | — | Liveness probe |
 
+**Auth (`auth` module):**
+- `POST /auth/login` — bcryptjs password verification, returns JWT access token
+- `JwtAuthGuard` — validates Bearer token on every request
+- `RolesGuard` + `@Roles()` decorator — role-based access control
+- All admin controllers protected: `EDITOR`, `CONTENT_ADMIN`, `SUPER_ADMIN` allowed
+
 **Stub modules (module wired, no implementation):**
 - `location-points` — module created, no controller/service/repository
 - `media` — module created, no implementation
-- `auth` — module created, no implementation
-- `users` — module created, no implementation
+- `users` — module created, `UsersService.findByEmail()` implemented (used by auth)
 - `audit-log` — module created; log writes are handled inside the villages/festivals services
 
 **Consistent across all implemented modules:**
@@ -81,7 +88,8 @@
 
 #### Shared layer (`shared/`)
 
-- `shared/api/http-client.ts` — fetch wrapper that parses JSON error bodies
+- `shared/api/http-client.ts` — fetch wrapper, attaches Bearer token, handles 401 with redirect
+- `shared/lib/auth` — Zustand persist store for JWT token (`cv-auth` localStorage key)
 - `shared/ui` — `Button`, `Input`, `Select`, `Textarea`, `Card`, `Modal`, `Drawer`, `PageContainer`, `SectionTitle`, `EmptyState`, `LoadingState`
 - `shared/ui/map` — `LeafletMap` (dynamic ssr:false wrapper), `_LeafletMapInner` (MapContainer + TileLayer OSM + DivIcon markers by kind), types `IMapMarker` / `TMapMarkerKind`
 - `shared/hooks`, `shared/config/navigation`, `shared/i18n`
@@ -128,6 +136,7 @@
 | `/admin/festivals/[id]/edit` | Edit + Archive + edition list |
 | `/admin/festivals/[id]/editions/new` | Create edition |
 | `/admin/festival-editions/[id]/edit` | Edit + Publish / Cancel / Archive |
+| `/admin/login` | Login form, JWT auth, redirects to `/admin` on success |
 
 #### Maps
 
@@ -141,12 +150,11 @@
 
 ---
 
-### Phase A — Critical blockers
+### Phase A — Critical blockers ✓ COMPLETE
 
-> The admin section is currently unprotected: any visitor can read, create, and
-> modify data. Nothing else in the roadmap is safe to ship publicly until access
-> control is in place. This phase must be completed before any other work is
-> released to a real environment.
+> The admin section was unprotected. JWT authentication is now in place —
+> all admin routes require a valid token. The remaining two items below are
+> low-priority follow-ups, not blockers.
 
 #### A1 — Authentication (Admin Auth)
 
