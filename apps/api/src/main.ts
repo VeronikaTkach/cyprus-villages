@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters';
 
@@ -15,6 +16,8 @@ async function bootstrap() {
   const isProduction = configService.get<boolean>('app.isProduction') ?? false;
 
   app.setGlobalPrefix('api/v1');
+
+  app.use(cookieParser());
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -42,6 +45,7 @@ async function bootstrap() {
       .setDescription('API for Cyprus Villages festival calendar')
       .setVersion('1.0')
       .addBearerAuth()
+      .addCookieAuth('cv-auth')
       .build();
 
     const document = SwaggerModule.createDocument(app, swaggerConfig);

@@ -26,10 +26,12 @@ import { UserRole } from '@prisma/client';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { LocationPointsService } from './location-points.service';
 import { CreateLocationPointDto } from './dto/create-location-point.dto';
 import { UpdateLocationPointDto } from './dto/update-location-point.dto';
 import { LocationPointResponseDto } from './dto/location-point-response.dto';
+import type { IJwtPayload } from '../auth/jwt-payload.interface';
 
 /**
  * Admin endpoints for LocationPoint management.
@@ -86,8 +88,11 @@ export class LocationPointsAdminController {
   @ApiCreatedResponse({ type: LocationPointResponseDto })
   @ApiBadRequestResponse({ description: 'Orphan row rejected — no owner provided' })
   @ApiNotFoundResponse({ description: 'Referenced Village or FestivalEdition not found' })
-  create(@Body() dto: CreateLocationPointDto): Promise<LocationPointResponseDto> {
-    return this.locationPointsService.create(dto);
+  create(
+    @Body() dto: CreateLocationPointDto,
+    @CurrentUser() user: IJwtPayload,
+  ): Promise<LocationPointResponseDto> {
+    return this.locationPointsService.create(dto, user.sub);
   }
 
   @Patch(':id')
@@ -101,8 +106,9 @@ export class LocationPointsAdminController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateLocationPointDto,
+    @CurrentUser() user: IJwtPayload,
   ): Promise<LocationPointResponseDto> {
-    return this.locationPointsService.update(id, dto);
+    return this.locationPointsService.update(id, dto, user.sub);
   }
 
   @Patch(':id/archive')
@@ -118,7 +124,8 @@ export class LocationPointsAdminController {
   @ApiConflictResponse({ description: 'LocationPoint is already archived' })
   archive(
     @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: IJwtPayload,
   ): Promise<LocationPointResponseDto> {
-    return this.locationPointsService.archive(id);
+    return this.locationPointsService.archive(id, user.sub);
   }
 }

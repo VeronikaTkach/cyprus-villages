@@ -47,7 +47,7 @@ export class LocationPointsService {
 
   // ── Admin mutations ───────────────────────────────────────
 
-  async create(dto: CreateLocationPointDto): Promise<TLocationPointRecord> {
+  async create(dto: CreateLocationPointDto, userId: number): Promise<TLocationPointRecord> {
     this.assertNotOrphan(dto.villageId, dto.festivalEditionId);
 
     await this.assertVillageExists(dto.villageId);
@@ -69,12 +69,12 @@ export class LocationPointsService {
 
     const point = await this.locationPointsRepository.create(data);
 
-    await this.writeAuditLog(point.id, AuditAction.CREATE, null, point);
+    await this.writeAuditLog(point.id, AuditAction.CREATE, null, point, userId);
 
     return point;
   }
 
-  async update(id: number, dto: UpdateLocationPointDto): Promise<TLocationPointRecord> {
+  async update(id: number, dto: UpdateLocationPointDto, userId: number): Promise<TLocationPointRecord> {
     const before = await this.getById(id);
 
     const point = await this.locationPointsRepository.update(id, {
@@ -85,12 +85,12 @@ export class LocationPointsService {
       note: dto.note,
     });
 
-    await this.writeAuditLog(id, AuditAction.UPDATE, before, point);
+    await this.writeAuditLog(id, AuditAction.UPDATE, before, point, userId);
 
     return point;
   }
 
-  async archive(id: number): Promise<TLocationPointRecord> {
+  async archive(id: number, userId: number): Promise<TLocationPointRecord> {
     const before = await this.getById(id);
 
     if (!before.isActive) {
@@ -99,7 +99,7 @@ export class LocationPointsService {
 
     const point = await this.locationPointsRepository.update(id, { isActive: false });
 
-    await this.writeAuditLog(id, AuditAction.ARCHIVE, before, point);
+    await this.writeAuditLog(id, AuditAction.ARCHIVE, before, point, userId);
 
     return point;
   }
@@ -157,6 +157,7 @@ export class LocationPointsService {
     action: AuditAction,
     before: TLocationPointRecord | null,
     after: TLocationPointRecord | null,
+    userId: number,
   ): Promise<void> {
     await this.prisma.auditLog.create({
       data: {
@@ -169,7 +170,7 @@ export class LocationPointsService {
         afterJson: after
           ? (JSON.parse(JSON.stringify(after)) as Prisma.InputJsonValue)
           : undefined,
-        userId: null,
+        userId,
       },
     });
   }

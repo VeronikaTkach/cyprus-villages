@@ -50,7 +50,7 @@ export class VillagesService {
 
   // ── Admin mutations ───────────────────────────────────────
 
-  async createVillage(dto: CreateVillageDto): Promise<TVillageRecord> {
+  async createVillage(dto: CreateVillageDto, userId: number): Promise<TVillageRecord> {
     const existing = await this.villagesRepository.findBySlug(dto.slug);
 
     if (existing) {
@@ -71,12 +71,12 @@ export class VillagesService {
       },
     });
 
-    await this.writeAuditLog(village.id, AuditAction.CREATE, null, village);
+    await this.writeAuditLog(village.id, AuditAction.CREATE, null, village, userId);
 
     return village;
   }
 
-  async updateVillage(id: number, dto: UpdateVillageDto): Promise<TVillageRecord> {
+  async updateVillage(id: number, dto: UpdateVillageDto, userId: number): Promise<TVillageRecord> {
     const before = await this.getVillageById(id);
 
     const upserts = this.buildTranslationUpserts(id, dto);
@@ -90,12 +90,12 @@ export class VillagesService {
       ...(upserts.length > 0 && { translations: { upsert: upserts } }),
     });
 
-    await this.writeAuditLog(id, AuditAction.UPDATE, before, village);
+    await this.writeAuditLog(id, AuditAction.UPDATE, before, village, userId);
 
     return village;
   }
 
-  async archiveVillage(id: number): Promise<TVillageRecord> {
+  async archiveVillage(id: number, userId: number): Promise<TVillageRecord> {
     const before = await this.getVillageById(id);
 
     if (!before.isActive) {
@@ -106,7 +106,7 @@ export class VillagesService {
       isActive: false,
     });
 
-    await this.writeAuditLog(id, AuditAction.ARCHIVE, before, village);
+    await this.writeAuditLog(id, AuditAction.ARCHIVE, before, village, userId);
 
     return village;
   }
@@ -174,18 +174,13 @@ export class VillagesService {
   }
 
   // ── Audit ─────────────────────────────────────────────────
-  //
-  // userId is null until auth is implemented.
-  // TODO: accept userId from request context once guards are in place.
-  //
-  // Dates in TVillageRecord are serialised to ISO strings via JSON.stringify,
-  // producing a plain JSON-compatible object for storage.
 
   private async writeAuditLog(
     entityId: number,
     action: AuditAction,
     before: TVillageRecord | null,
     after: TVillageRecord | null,
+    userId: number,
   ): Promise<void> {
     await this.prisma.auditLog.create({
       data: {
@@ -198,7 +193,7 @@ export class VillagesService {
         afterJson: after
           ? (JSON.parse(JSON.stringify(after)) as Prisma.InputJsonValue)
           : undefined,
-        userId: null,
+        userId,
       },
     });
   }

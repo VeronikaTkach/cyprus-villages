@@ -3,7 +3,6 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { UsersService } from '../users/users.service';
 import type { IJwtPayload } from './jwt-payload.interface';
-import type { AuthTokenResponseDto } from './dto/auth-token-response.dto';
 
 @Injectable()
 export class AuthService {
@@ -12,7 +11,8 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async login(email: string, password: string): Promise<AuthTokenResponseDto> {
+  /** Validates credentials and returns a signed JWT string. */
+  async login(email: string, password: string): Promise<string> {
     const user = await this.usersService.findByEmail(email);
 
     if (!user || !user.isActive) {
@@ -34,6 +34,6 @@ export class AuthService {
       role: user.role,
     };
 
-    return { accessToken: this.jwtService.sign(payload) };
+    return this.jwtService.sign(payload);
   }
 }

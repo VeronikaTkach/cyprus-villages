@@ -1,13 +1,8 @@
 import { appConfig } from '@/shared/config';
 import { useAuthStore } from '@/shared/lib/auth';
 
-function getAuthHeaders(): Record<string, string> {
-  const token = useAuthStore.getState().token;
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
-
 function handleUnauthorized(): void {
-  useAuthStore.getState().clearToken();
+  useAuthStore.getState().setAuthenticated(false);
   if (
     typeof window !== 'undefined' &&
     window.location.pathname.startsWith('/admin') &&
@@ -20,9 +15,9 @@ function handleUnauthorized(): void {
 export async function httpGet<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${appConfig.apiUrl}${path}`, {
     ...init,
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      ...getAuthHeaders(),
       ...init?.headers,
     },
   });

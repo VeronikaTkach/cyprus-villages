@@ -39,6 +39,7 @@ export class FestivalEditionsService {
 
   async createEdition(
     dto: CreateFestivalEditionDto,
+    userId: number,
   ): Promise<TFestivalEditionRecord> {
     // Validate festival exists
     const festival = await this.prisma.festival.findUnique({
@@ -84,7 +85,7 @@ export class FestivalEditionsService {
       sourceNote: dto.sourceNote ?? null,
     });
 
-    await this.writeAuditLog(edition.id, AuditAction.CREATE, null, edition);
+    await this.writeAuditLog(edition.id, AuditAction.CREATE, null, edition, userId);
 
     return edition;
   }
@@ -92,6 +93,7 @@ export class FestivalEditionsService {
   async updateEdition(
     id: number,
     dto: UpdateFestivalEditionDto,
+    userId: number,
   ): Promise<TFestivalEditionRecord> {
     const before = await this.getEditionById(id);
 
@@ -114,12 +116,12 @@ export class FestivalEditionsService {
       sourceNote: dto.sourceNote,
     });
 
-    await this.writeAuditLog(id, AuditAction.UPDATE, before, edition);
+    await this.writeAuditLog(id, AuditAction.UPDATE, before, edition, userId);
 
     return edition;
   }
 
-  async publishEdition(id: number): Promise<TFestivalEditionRecord> {
+  async publishEdition(id: number, userId: number): Promise<TFestivalEditionRecord> {
     const before = await this.getEditionById(id);
 
     if (before.status === FestivalEditionStatus.PUBLISHED) {
@@ -139,12 +141,12 @@ export class FestivalEditionsService {
       publishedAt: before.publishedAt ?? new Date(),
     });
 
-    await this.writeAuditLog(id, AuditAction.PUBLISH, before, edition);
+    await this.writeAuditLog(id, AuditAction.PUBLISH, before, edition, userId);
 
     return edition;
   }
 
-  async archiveEdition(id: number): Promise<TFestivalEditionRecord> {
+  async archiveEdition(id: number, userId: number): Promise<TFestivalEditionRecord> {
     const before = await this.getEditionById(id);
 
     if (before.status === FestivalEditionStatus.ARCHIVED) {
@@ -155,12 +157,12 @@ export class FestivalEditionsService {
       status: FestivalEditionStatus.ARCHIVED,
     });
 
-    await this.writeAuditLog(id, AuditAction.ARCHIVE, before, edition);
+    await this.writeAuditLog(id, AuditAction.ARCHIVE, before, edition, userId);
 
     return edition;
   }
 
-  async cancelEdition(id: number): Promise<TFestivalEditionRecord> {
+  async cancelEdition(id: number, userId: number): Promise<TFestivalEditionRecord> {
     const before = await this.getEditionById(id);
 
     if (before.status === FestivalEditionStatus.CANCELLED) {
@@ -177,21 +179,19 @@ export class FestivalEditionsService {
       status: FestivalEditionStatus.CANCELLED,
     });
 
-    await this.writeAuditLog(id, AuditAction.CANCEL, before, edition);
+    await this.writeAuditLog(id, AuditAction.CANCEL, before, edition, userId);
 
     return edition;
   }
 
   // ── Audit ─────────────────────────────────────────────────
-  //
-  // userId is null until auth is implemented.
-  // TODO: accept userId from request context once guards are in place.
 
   private async writeAuditLog(
     entityId: number,
     action: AuditAction,
     before: TFestivalEditionRecord | null,
     after: TFestivalEditionRecord | null,
+    userId: number,
   ): Promise<void> {
     await this.prisma.auditLog.create({
       data: {
@@ -204,7 +204,7 @@ export class FestivalEditionsService {
         afterJson: after
           ? (JSON.parse(JSON.stringify(after)) as Prisma.InputJsonValue)
           : undefined,
-        userId: null,
+        userId,
       },
     });
   }

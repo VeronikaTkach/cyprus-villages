@@ -25,10 +25,12 @@ import { UserRole } from '@prisma/client';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { VillagesService } from './villages.service';
 import { CreateVillageDto } from './dto/create-village.dto';
 import { UpdateVillageDto } from './dto/update-village.dto';
 import { VillageResponseDto } from './dto/village-response.dto';
+import type { IJwtPayload } from '../auth/jwt-payload.interface';
 
 /**
  * Admin endpoints for village management.
@@ -70,8 +72,11 @@ export class VillagesAdminController {
   @ApiOperation({ summary: 'Create a new village' })
   @ApiCreatedResponse({ type: VillageResponseDto })
   @ApiConflictResponse({ description: 'A village with this slug already exists' })
-  createVillage(@Body() dto: CreateVillageDto): Promise<VillageResponseDto> {
-    return this.villagesService.createVillage(dto);
+  createVillage(
+    @Body() dto: CreateVillageDto,
+    @CurrentUser() user: IJwtPayload,
+  ): Promise<VillageResponseDto> {
+    return this.villagesService.createVillage(dto, user.sub);
   }
 
   @Patch(':id')
@@ -85,8 +90,9 @@ export class VillagesAdminController {
   updateVillage(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateVillageDto,
+    @CurrentUser() user: IJwtPayload,
   ): Promise<VillageResponseDto> {
-    return this.villagesService.updateVillage(id, dto);
+    return this.villagesService.updateVillage(id, dto, user.sub);
   }
 
   @Patch(':id/archive')
@@ -102,7 +108,8 @@ export class VillagesAdminController {
   @ApiConflictResponse({ description: 'Village is already archived' })
   archiveVillage(
     @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: IJwtPayload,
   ): Promise<VillageResponseDto> {
-    return this.villagesService.archiveVillage(id);
+    return this.villagesService.archiveVillage(id, user.sub);
   }
 }

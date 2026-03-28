@@ -27,13 +27,9 @@ const loginSchema = z.object({
 
 type TLoginValues = z.infer<typeof loginSchema>;
 
-interface ILoginResponse {
-  accessToken: string;
-}
-
 export function AdminLoginView() {
   const router = useRouter();
-  const setToken = useAuthStore((s) => s.setToken);
+  const setAuthenticated = useAuthStore((s) => s.setAuthenticated);
   const [error, setError] = useState<string | null>(null);
 
   const {
@@ -48,8 +44,8 @@ export function AdminLoginView() {
   const onSubmit = handleSubmit(async (values) => {
     setError(null);
     try {
-      const { accessToken } = await httpPost<ILoginResponse>('/auth/login', values);
-      setToken(accessToken);
+      await httpPost('/auth/login', values);
+      setAuthenticated(true);
       router.replace('/admin');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');

@@ -1,6 +1,6 @@
 # Cyprus Villages — Project Progress
 
-> Last updated: 2026-03-27 (audit pass: LocationPoint complete, C1 backend complete, security.md created)
+> Last updated: 2026-03-28 (security hardening complete: httpOnly cookie auth, rate limiting, logout, audit log attribution)
 
 ---
 
@@ -15,9 +15,8 @@ Full snapshot: [`docs/audits/2026-03-27-architecture-audit.md`](audits/2026-03-2
 ## Next priority
 
 1. **Frontend festival filters** — wire `category`, `villageId`, `year`, `month` filter UI; sync active filters to URL search params (Phase C1 frontend).
-2. **Auth hardening** — migrate token storage to httpOnly cookies; add rate limiting on `/auth/login` (see `security.md`).
-3. **Audit log user attribution** — propagate `@CurrentUser()` from admin controller methods into service calls; eliminate `userId: null` writes.
-4. **Calendar / timeline view** — grouped-by-month layout on the public festivals page (Phase C3).
+2. **Calendar / timeline view** — grouped-by-month layout on the public festivals page (Phase C3).
+3. **Village page: festival list** — include related festivals with active editions in the village detail page (Phase C2).
 
 ---
 
@@ -74,10 +73,12 @@ Full snapshot: [`docs/audits/2026-03-27-architecture-audit.md`](audits/2026-03-2
 | `health` | GET /health | — | Liveness probe |
 
 **Auth (`auth` module):**
-- `POST /auth/login` — bcryptjs password verification, returns JWT access token
-- `JwtAuthGuard` — validates Bearer token on every request
+- `POST /auth/login` — bcryptjs password verification, sets httpOnly cookie (`cv-auth`), returns `{ ok: true }`; rate-limited to 5 attempts / 10 min
+- `POST /auth/logout` — clears the cookie
+- `JwtAuthGuard` — extracts token from cookie (primary) or `Authorization: Bearer` header (Swagger fallback)
 - `RolesGuard` + `@Roles()` decorator — role-based access control
 - All admin controllers protected: `EDITOR`, `CONTENT_ADMIN`, `SUPER_ADMIN` allowed
+- All 4 domain services propagate `userId` from `@CurrentUser()` into `AuditLog` writes
 
 **Stub modules (module wired, no implementation):**
 - `media` — module created, no implementation
@@ -105,8 +106,8 @@ Full snapshot: [`docs/audits/2026-03-27-architecture-audit.md`](audits/2026-03-2
 
 #### Shared layer (`shared/`)
 
-- `shared/api/http-client.ts` — fetch wrapper, attaches Bearer token, handles 401 with redirect
-- `shared/lib/auth` — Zustand persist store for JWT token (`cv-auth` localStorage key)
+- `shared/api/http-client.ts` — fetch wrapper with `credentials: 'include'`; handles 401 with redirect
+- `shared/lib/auth` — Zustand persist store for `isAuthenticated: boolean` flag (`cv-auth-ui` localStorage key); no token stored in browser
 - `shared/ui` — `Button`, `Input`, `Select`, `Textarea`, `Card`, `Modal`, `Drawer`, `PageContainer`, `SectionTitle`, `EmptyState`, `LoadingState`
 - `shared/ui/map` — `LeafletMap` (dynamic ssr:false wrapper), `_LeafletMapInner` (MapContainer + TileLayer OSM + DivIcon markers by kind), types `IMapMarker` / `TMapMarkerKind`
 - `shared/hooks`, `shared/config/navigation`, `shared/i18n`
@@ -178,10 +179,10 @@ Full snapshot: [`docs/audits/2026-03-27-architecture-audit.md`](audits/2026-03-2
 - [x] Backend: `auth` module — JWT login (`POST /auth/login`), `JwtAuthGuard`, `RolesGuard`, `@Roles()` decorator
 - [x] Backend: protect all `admin/*` controllers with `JwtAuthGuard + RolesGuard`
 - [x] Frontend: `/admin/login` page with login form
-- [x] Frontend: JWT token storage (Zustand + localStorage persist)
-- [x] Frontend: redirect to `/admin/login` on 401 and on missing token
+- [x] Frontend: `isAuthenticated` flag (Zustand + localStorage persist, key `cv-auth-ui`); no token in browser storage
+- [x] Frontend: redirect to `/admin/login` on 401 and on missing flag
+- [x] Frontend: logout button in admin header (`POST /auth/logout` + clear state + redirect)
 - [ ] Backend: `users` module — `POST /admin/users`, `PATCH /admin/users/:id`, `GET /admin/users`
-- [ ] Frontend: logout action in admin header
 
 ---
 
@@ -314,10 +315,6 @@ A fully separate phase. Reuses the entire domain model and API.
 
 | Issue | Location | Priority |
 |-------|----------|----------|
-| JWT token stored in localStorage (XSS risk); target is httpOnly cookie — see security.md | `shared/lib/auth/auth-store.ts` | High |
-| No rate limiting on `POST /auth/login` | `auth.controller.ts` | High |
-| Audit log writes `userId: null` in all modules (auth user not propagated to service layer) | All domain services | Medium |
-| Admin section has no logout button | Admin header | Low |
 | No pagination in admin list views | Villages, Festivals, LocationPoints | Medium |
 | Coordinates entered as plain number inputs | FestivalEditionForm, VillageForm | Low |
 | Media single-owner invariant not validated at service level | MediaService (not implemented) | Low |

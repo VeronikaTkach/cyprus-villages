@@ -74,7 +74,7 @@ export class FestivalsService {
 
   // ── Admin mutations ───────────────────────────────────────
 
-  async createFestival(dto: CreateFestivalDto): Promise<TFestivalRecord> {
+  async createFestival(dto: CreateFestivalDto, userId: number): Promise<TFestivalRecord> {
     const existing = await this.festivalsRepository.findBySlug(dto.slug);
 
     if (existing) {
@@ -102,12 +102,12 @@ export class FestivalsService {
       },
     });
 
-    await this.writeAuditLog(festival.id, AuditAction.CREATE, null, festival);
+    await this.writeAuditLog(festival.id, AuditAction.CREATE, null, festival, userId);
 
     return festival;
   }
 
-  async updateFestival(id: number, dto: UpdateFestivalDto): Promise<TFestivalRecord> {
+  async updateFestival(id: number, dto: UpdateFestivalDto, userId: number): Promise<TFestivalRecord> {
     const before = await this.getFestivalById(id);
 
     const upserts = this.buildTranslationUpserts(id, dto);
@@ -118,12 +118,12 @@ export class FestivalsService {
       ...(upserts.length > 0 && { translations: { upsert: upserts } }),
     });
 
-    await this.writeAuditLog(id, AuditAction.UPDATE, before, festival);
+    await this.writeAuditLog(id, AuditAction.UPDATE, before, festival, userId);
 
     return festival;
   }
 
-  async archiveFestival(id: number): Promise<TFestivalRecord> {
+  async archiveFestival(id: number, userId: number): Promise<TFestivalRecord> {
     const before = await this.getFestivalById(id);
 
     if (!before.isActive) {
@@ -134,7 +134,7 @@ export class FestivalsService {
       isActive: false,
     });
 
-    await this.writeAuditLog(id, AuditAction.ARCHIVE, before, festival);
+    await this.writeAuditLog(id, AuditAction.ARCHIVE, before, festival, userId);
 
     return festival;
   }
@@ -213,15 +213,13 @@ export class FestivalsService {
   }
 
   // ── Audit ─────────────────────────────────────────────────
-  //
-  // userId is null until auth is implemented.
-  // TODO: accept userId from request context once guards are in place.
 
   private async writeAuditLog(
     entityId: number,
     action: AuditAction,
     before: TFestivalRecord | null,
     after: TFestivalRecord | null,
+    userId: number,
   ): Promise<void> {
     await this.prisma.auditLog.create({
       data: {
@@ -234,7 +232,7 @@ export class FestivalsService {
         afterJson: after
           ? (JSON.parse(JSON.stringify(after)) as Prisma.InputJsonValue)
           : undefined,
-        userId: null,
+        userId,
       },
     });
   }

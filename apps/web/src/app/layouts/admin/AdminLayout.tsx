@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { AppShell, Burger, Center, Group, Loader, Text } from '@mantine/core';
+import { ActionIcon, AppShell, Burger, Center, Group, Loader, Text, Tooltip } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
+import { IconLogout } from '@tabler/icons-react';
 import { AdminSidebar } from '@/widgets/admin-sidebar';
 import { useAuthStore } from '@/shared/lib/auth';
+import { httpPost } from '@/shared/api/http-client';
 
 interface IAdminLayoutProps {
   children: React.ReactNode;
@@ -16,7 +18,8 @@ export function AdminLayout({ children }: IAdminLayoutProps) {
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
-  const token = useAuthStore((s) => s.token);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const setAuthenticated = useAuthStore((s) => s.setAuthenticated);
 
   useEffect(() => {
     setMounted(true);
@@ -37,13 +40,23 @@ export function AdminLayout({ children }: IAdminLayoutProps) {
   }
 
   // Redirect to login if not authenticated
-  if (!token) {
+  if (!isAuthenticated) {
     router.replace('/admin/login');
     return (
       <Center mih="100vh">
         <Loader size="sm" />
       </Center>
     );
+  }
+
+  async function handleLogout() {
+    try {
+      await httpPost('/auth/logout', {});
+    } catch {
+      // ignore — clear state regardless
+    }
+    setAuthenticated(false);
+    router.replace('/admin/login');
   }
 
   return (
@@ -57,7 +70,14 @@ export function AdminLayout({ children }: IAdminLayoutProps) {
           <Text fw={700} size="md">
             Cyprus Villages — Admin
           </Text>
-          <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
+          <Group>
+            <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
+            <Tooltip label="Log out">
+              <ActionIcon variant="subtle" color="gray" onClick={handleLogout} aria-label="Log out">
+                <IconLogout size={18} />
+              </ActionIcon>
+            </Tooltip>
+          </Group>
         </Group>
       </AppShell.Header>
       <AdminSidebar />

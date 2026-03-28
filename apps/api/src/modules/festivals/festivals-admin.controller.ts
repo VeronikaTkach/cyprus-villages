@@ -25,10 +25,12 @@ import { UserRole } from '@prisma/client';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { FestivalsService } from './festivals.service';
 import { CreateFestivalDto } from './dto/create-festival.dto';
 import { UpdateFestivalDto } from './dto/update-festival.dto';
 import { FestivalResponseDto } from './dto/festival-response.dto';
+import type { IJwtPayload } from '../auth/jwt-payload.interface';
 
 /**
  * Admin endpoints for festival management.
@@ -72,8 +74,11 @@ export class FestivalsAdminController {
   @ApiCreatedResponse({ type: FestivalResponseDto })
   @ApiConflictResponse({ description: 'A festival with this slug already exists' })
   @ApiNotFoundResponse({ description: 'Village not found' })
-  createFestival(@Body() dto: CreateFestivalDto): Promise<FestivalResponseDto> {
-    return this.festivalsService.createFestival(dto);
+  createFestival(
+    @Body() dto: CreateFestivalDto,
+    @CurrentUser() user: IJwtPayload,
+  ): Promise<FestivalResponseDto> {
+    return this.festivalsService.createFestival(dto, user.sub);
   }
 
   @Patch(':id')
@@ -87,8 +92,9 @@ export class FestivalsAdminController {
   updateFestival(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateFestivalDto,
+    @CurrentUser() user: IJwtPayload,
   ): Promise<FestivalResponseDto> {
-    return this.festivalsService.updateFestival(id, dto);
+    return this.festivalsService.updateFestival(id, dto, user.sub);
   }
 
   @Patch(':id/archive')
@@ -104,7 +110,8 @@ export class FestivalsAdminController {
   @ApiConflictResponse({ description: 'Festival is already archived' })
   archiveFestival(
     @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: IJwtPayload,
   ): Promise<FestivalResponseDto> {
-    return this.festivalsService.archiveFestival(id);
+    return this.festivalsService.archiveFestival(id, user.sub);
   }
 }

@@ -25,10 +25,12 @@ import { UserRole } from '@prisma/client';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { FestivalEditionsService } from './festival-editions.service';
 import { CreateFestivalEditionDto } from './dto/create-festival-edition.dto';
 import { UpdateFestivalEditionDto } from './dto/update-festival-edition.dto';
 import { FestivalEditionResponseDto } from './dto/festival-edition-response.dto';
+import type { IJwtPayload } from '../auth/jwt-payload.interface';
 
 /**
  * Admin endpoints for festival edition management.
@@ -78,8 +80,9 @@ export class FestivalEditionsAdminController {
   @ApiConflictResponse({ description: 'An edition for this festival and year already exists' })
   createEdition(
     @Body() dto: CreateFestivalEditionDto,
+    @CurrentUser() user: IJwtPayload,
   ): Promise<FestivalEditionResponseDto> {
-    return this.editionsService.createEdition(dto);
+    return this.editionsService.createEdition(dto, user.sub);
   }
 
   @Patch(':id')
@@ -95,8 +98,9 @@ export class FestivalEditionsAdminController {
   updateEdition(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateFestivalEditionDto,
+    @CurrentUser() user: IJwtPayload,
   ): Promise<FestivalEditionResponseDto> {
-    return this.editionsService.updateEdition(id, dto);
+    return this.editionsService.updateEdition(id, dto, user.sub);
   }
 
   @Patch(':id/publish')
@@ -112,8 +116,9 @@ export class FestivalEditionsAdminController {
   @ApiConflictResponse({ description: 'Edition is already published or is cancelled' })
   publishEdition(
     @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: IJwtPayload,
   ): Promise<FestivalEditionResponseDto> {
-    return this.editionsService.publishEdition(id);
+    return this.editionsService.publishEdition(id, user.sub);
   }
 
   @Patch(':id/archive')
@@ -127,8 +132,9 @@ export class FestivalEditionsAdminController {
   @ApiConflictResponse({ description: 'Edition is already archived' })
   archiveEdition(
     @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: IJwtPayload,
   ): Promise<FestivalEditionResponseDto> {
-    return this.editionsService.archiveEdition(id);
+    return this.editionsService.archiveEdition(id, user.sub);
   }
 
   @Patch(':id/cancel')
@@ -144,7 +150,8 @@ export class FestivalEditionsAdminController {
   @ApiConflictResponse({ description: 'Edition is already cancelled or is archived' })
   cancelEdition(
     @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: IJwtPayload,
   ): Promise<FestivalEditionResponseDto> {
-    return this.editionsService.cancelEdition(id);
+    return this.editionsService.cancelEdition(id, user.sub);
   }
 }

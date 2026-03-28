@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import type { Request } from 'express';
+import { AUTH_COOKIE } from '../../modules/auth/auth.controller';
 import type { IJwtPayload } from '../../modules/auth/jwt-payload.interface';
 
 @Injectable()
@@ -30,6 +31,11 @@ export class JwtAuthGuard implements CanActivate {
   }
 
   private extractToken(request: Request): string | null {
+    // Primary: httpOnly cookie set by POST /auth/login.
+    const cookieToken = (request.cookies as Record<string, string> | undefined)?.[AUTH_COOKIE];
+    if (cookieToken) return cookieToken;
+
+    // Fallback: Authorization: Bearer header — supports Swagger UI and direct API clients.
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
     return type === 'Bearer' ? (token ?? null) : null;
   }
