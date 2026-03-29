@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import type { Request } from 'express';
-import { AUTH_COOKIE } from '../../modules/auth/auth.controller';
+import { AUTH_COOKIE } from '../../modules/auth/auth.constants';
 import type { IJwtPayload } from '../../modules/auth/jwt-payload.interface';
 
 @Injectable()

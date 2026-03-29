@@ -13,9 +13,9 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { AuthSuccessResponseDto } from './dto/auth-success-response.dto';
+import { AUTH_COOKIE } from './auth.constants';
 
-// Cookie name shared between login (set), logout (clear), and JwtAuthGuard (read).
-export const AUTH_COOKIE = 'cv-auth';
+export { AUTH_COOKIE };
 
 // 7-day session matching the default JWT expiry.
 const COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1_000;
