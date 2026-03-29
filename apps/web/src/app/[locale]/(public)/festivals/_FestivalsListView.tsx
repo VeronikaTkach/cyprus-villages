@@ -5,9 +5,23 @@ import { useTranslations } from 'next-intl';
 import { SimpleGrid, Stack, Text } from '@mantine/core';
 import { Link } from '@/i18n/navigation';
 import { EmptyState, LoadingState } from '@/shared/ui';
-import { FestivalCard, usePublicFestivals } from '@/entities/festival';
+import { FestivalCard, usePublicFestivals, CATEGORY_LABELS } from '@/entities/festival';
 import type { IPublicFestivalsFilter } from '@/entities/festival';
 import { FestivalsFilter } from './_FestivalsFilter';
+
+// Derived from CATEGORY_LABELS keys so it stays in sync with the entity definition.
+const VALID_CATEGORIES = new Set(Object.keys(CATEGORY_LABELS));
+
+/**
+ * Parse a URL search param as a positive integer.
+ * Returns undefined for missing, non-numeric, non-integer, or non-positive values
+ * so that malformed params are silently dropped rather than passed to the API.
+ */
+function parsePositiveInt(val: string | null | undefined): number | undefined {
+  if (!val) return undefined;
+  const n = Number(val);
+  return Number.isFinite(n) && Number.isInteger(n) && n > 0 ? n : undefined;
+}
 
 export function FestivalsListView() {
   const t = useTranslations('festivals');
@@ -18,12 +32,18 @@ export function FestivalsListView() {
   const pathname = usePathname() ?? '/festivals';
 
   // Derive filter state directly from URL — no separate useState.
-  // searchParams is null during SSR before Suspense resolves; fall back to empty.
+  // searchParams is null before the Suspense boundary resolves; fall back to empty.
+  // All params are validated: invalid values become undefined (unselected) rather
+  // than being forwarded to the API where they would trigger a 400 error.
+  const rawCategory = searchParams?.get('category');
   const filters: IPublicFestivalsFilter = {
-    category: searchParams?.get('category') ?? undefined,
-    villageId: searchParams?.get('villageId') ? Number(searchParams.get('villageId')) : undefined,
-    year: searchParams?.get('year') ? Number(searchParams.get('year')) : undefined,
-    month: searchParams?.get('month') ? Number(searchParams.get('month')) : undefined,
+    category: rawCategory && VALID_CATEGORIES.has(rawCategory) ? rawCategory : undefined,
+    villageId: parsePositiveInt(searchParams?.get('villageId')),
+    year: parsePositiveInt(searchParams?.get('year')),
+    month: (() => {
+      const m = parsePositiveInt(searchParams?.get('month'));
+      return m !== undefined && m >= 1 && m <= 12 ? m : undefined;
+    })(),
   };
 
   const hasFilters = !!(filters.category || filters.villageId || filters.year || filters.month);
