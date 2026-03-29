@@ -17,7 +17,15 @@
     "description": "Festival calendar and events",
     "empty": "No festivals have been added yet.",
     "notFound": "Festival not found.",
-    "loadError": "Failed to load festivals."
+    "loadError": "Failed to load festivals.",
+    "filters": {
+      "category": "Category",
+      "village": "Village",
+      "year": "Year",
+      "month": "Month",
+      "clearFilters": "Clear filters",
+      "noResults": "No festivals match the selected filters."
+    }
   },
   "map": {
     "title": "Map",

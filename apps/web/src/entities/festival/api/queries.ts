@@ -10,20 +10,25 @@ import {
   fetchFestivalById,
   fetchFestivalBySlug,
   updateFestival,
+  type IPublicFestivalsFilter,
 } from './festivals.api';
 
 export const festivalKeys = {
   all: ['festivals'] as const,
-  publicList: () => [...festivalKeys.all, 'public', 'list'] as const,
+  // filters object is included in the key so filtered and unfiltered results
+  // are cached separately. undefined properties are stripped by JSON.stringify,
+  // so an all-undefined filter object is equivalent to no filter.
+  publicList: (filters?: IPublicFestivalsFilter) =>
+    [...festivalKeys.all, 'public', 'list', filters ?? {}] as const,
   publicDetail: (slug: string) => [...festivalKeys.all, 'public', 'detail', slug] as const,
   adminList: () => [...festivalKeys.all, 'admin', 'list'] as const,
   adminDetail: (id: number) => [...festivalKeys.all, 'admin', 'detail', id] as const,
 };
 
-export function usePublicFestivals() {
+export function usePublicFestivals(filters?: IPublicFestivalsFilter) {
   return useQuery({
-    queryKey: festivalKeys.publicList(),
-    queryFn: fetchActiveFestivals,
+    queryKey: festivalKeys.publicList(filters),
+    queryFn: () => fetchActiveFestivals(filters),
   });
 }
 

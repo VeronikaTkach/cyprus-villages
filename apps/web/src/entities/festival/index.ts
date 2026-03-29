@@ -11,6 +11,8 @@ export { getFestivalTranslation, getLatestEdition } from './model';
 
 export { FestivalCard, CATEGORY_LABELS, CATEGORY_COLORS, EDITION_STATUS_LABELS, EDITION_STATUS_COLORS, formatDate, formatDateRange } from './ui';
 
+export type { IPublicFestivalsFilter } from './api';
+
 export {
   festivalKeys,
   usePublicFestivals,

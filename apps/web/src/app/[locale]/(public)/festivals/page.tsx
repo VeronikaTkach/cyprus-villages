@@ -1,6 +1,7 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { PageContainer, SectionTitle } from '@/shared/ui';
+import { PageContainer, SectionTitle, LoadingState } from '@/shared/ui';
 import { FestivalsListView } from './_FestivalsListView';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -17,7 +18,9 @@ export default async function FestivalsPage() {
   return (
     <PageContainer>
       <SectionTitle title={t('title')} description={t('description')} />
-      <FestivalsListView />
+      <Suspense fallback={<LoadingState />}>
+        <FestivalsListView />
+      </Suspense>
     </PageContainer>
   );
 }
