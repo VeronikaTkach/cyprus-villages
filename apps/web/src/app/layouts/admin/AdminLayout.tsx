@@ -7,7 +7,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { IconLogout } from '@tabler/icons-react';
 import { AdminSidebar } from '@/widgets/admin-sidebar';
 import { useAuthStore } from '@/shared/lib/auth';
-import { httpPost } from '@/shared/api/http-client';
+import { httpGet, httpPost } from '@/shared/api/http-client';
 
 interface IAdminLayoutProps {
   children: React.ReactNode;
@@ -24,6 +24,16 @@ export function AdminLayout({ children }: IAdminLayoutProps) {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Probe the backend once after hydration to detect a stale persisted isAuthenticated flag.
+  // If the cookie is missing or expired, the 401 response triggers handleUnauthorized,
+  // which clears isAuthenticated and redirects to /admin/login.
+  useEffect(() => {
+    if (!mounted || !isAuthenticated) return;
+    void httpGet<{ ok: boolean }>('/auth/me').catch(() => {
+      // 401 is handled inside httpGet — no action needed here
+    });
+  }, [mounted, isAuthenticated]);
 
   // Pass through the login page without any shell or auth check
   if (pathname === '/admin/login') {
