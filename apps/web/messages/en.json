@@ -25,6 +25,11 @@
       "month": "Month",
       "clearFilters": "Clear filters",
       "noResults": "No festivals match the selected filters."
+    },
+    "timeline": {
+      "tba": "Dates TBA",
+      "soon": "Soon",
+      "ongoing": "Ongoing"
     }
   },
   "map": {

@@ -1,13 +1,15 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { SimpleGrid, Stack, Text } from '@mantine/core';
-import { Link } from '@/i18n/navigation';
+import { Stack, Text } from '@mantine/core';
 import { EmptyState, LoadingState } from '@/shared/ui';
-import { FestivalCard, usePublicFestivals, CATEGORY_LABELS } from '@/entities/festival';
+import { usePublicFestivals, CATEGORY_LABELS, getLatestEdition } from '@/entities/festival';
 import type { IPublicFestivalsFilter } from '@/entities/festival';
 import { FestivalsFilter } from './_FestivalsFilter';
+import { MonthStrip } from './_MonthStrip';
+import { FestivalsTimeline } from './_FestivalsTimeline';
 
 // Derived from CATEGORY_LABELS keys so it stays in sync with the entity definition.
 const VALID_CATEGORIES = new Set(Object.keys(CATEGORY_LABELS));
@@ -61,9 +63,28 @@ export function FestivalsListView() {
 
   const { data: festivals, isLoading, isError } = usePublicFestivals(filters);
 
+  // Compute which months have data in the current result set.
+  // Also always include the active month filter (if set) so the strip highlights
+  // it even when all matched festivals have undated or cross-month latest editions.
+  const activeMonths = useMemo(() => {
+    const months = new Set<number>();
+    for (const festival of festivals ?? []) {
+      const edition = getLatestEdition(festival);
+      if (edition && !edition.isDateTba && edition.startDate) {
+        months.add(new Date(edition.startDate).getMonth() + 1);
+      }
+    }
+    if (filters.month !== undefined) months.add(filters.month);
+    return months;
+  }, [festivals, filters.month]);
+
   return (
     <Stack gap="lg">
       <FestivalsFilter filters={filters} onChange={handleFiltersChange} />
+
+      {!isLoading && !isError && (festivals?.length ?? 0) > 0 && (
+        <MonthStrip activeMonths={activeMonths} filters={filters} onChange={handleFiltersChange} />
+      )}
 
       {isLoading && <LoadingState />}
       {isError && <Text c="red">{t('loadError')}</Text>}
@@ -73,17 +94,7 @@ export function FestivalsListView() {
       )}
 
       {!isLoading && !isError && festivals && festivals.length > 0 && (
-        <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-          {festivals.map((festival) => (
-            <Link
-              key={festival.id}
-              href={`/festivals/${festival.slug}`}
-              style={{ textDecoration: 'none' }}
-            >
-              <FestivalCard festival={festival} />
-            </Link>
-          ))}
-        </SimpleGrid>
+        <FestivalsTimeline festivals={festivals} activeYear={filters.year} />
       )}
     </Stack>
   );
