@@ -100,15 +100,15 @@ describe('selectDisplayEdition', () => {
     expect(result?.id).toBe(2);
   });
 
-  // Deterministic: multiple candidates — year desc, then startDate asc, then id desc
+  // Deterministic: multiple candidates — year desc, then startDate asc (stable for ties)
   it('picks deterministically when multiple candidates match (startDate asc tiebreak)', () => {
     const editions = [
-      ed(10, 2025, '2025-07-20'), // July, later date
-      ed(11, 2025, '2025-07-01'), // July, earlier date — wins (startDate asc)
-      ed(12, 2025, '2025-07-01'), // same date, lower id → loses (id desc)
+      ed(10, 2025, '2025-07-20'), // July, later date — loses (startDate asc)
+      ed(11, 2025, '2025-07-01'), // July, earlier date — wins (first in array with earliest date)
+      ed(12, 2025, '2025-07-01'), // same date — stable sort preserves ed(11) before ed(12)
     ];
     const result = selectDisplayEdition(editions, { year: 2025, month: 7 });
-    expect(result?.id).toBe(12); // id desc among same startDate → 12 > 11
+    expect(result?.id).toBe(11); // startDate asc → earliest date wins; equal dates → stable (insertion order)
   });
 
   // Empty input
