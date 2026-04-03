@@ -10,6 +10,12 @@ function editionMatchesMonth(edition: TEdition, month: number): boolean {
 function sortEditions(editions: TEdition[]): TEdition[] {
   return [...editions].sort((a, b) => {
     if (b.year !== a.year) return b.year - a.year;
+    // startDate is a Date object, so !== is reference inequality — always true for
+    // distinct objects even when they represent the same timestamp. Equal dates
+    // therefore enter this branch and return getTime() - getTime() = 0. A return
+    // value of 0 means "equal" to Array.sort; V8's stable TimSort preserves the
+    // original array order for equal elements. As a result, the id tiebreaker
+    // below is never reached for editions that share the same startDate.
     if (a.startDate !== b.startDate) {
       if (!a.startDate) return 1;
       if (!b.startDate) return -1;
