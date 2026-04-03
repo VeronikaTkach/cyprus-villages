@@ -82,6 +82,56 @@ export class FestivalEditionBriefDto {
   updatedAt!: Date;
 }
 
+/**
+ * Response shape for a single festival in the public list.
+ * Identical to FestivalResponseDto plus a `displayEdition` presentation helper.
+ * `displayEdition` is the edition the frontend should use for timeline grouping,
+ * date display, and Soon/Ongoing badges — it respects active year/month filters.
+ */
+export class PublicFestivalListItemDto {
+  @ApiProperty({ example: 1 })
+  id!: number;
+
+  @ApiProperty({ example: 'wine-festival-omodos' })
+  slug!: string;
+
+  @ApiProperty({ example: 1 })
+  villageId!: number;
+
+  @ApiPropertyOptional({
+    example: 'Φεστιβάλ Κρασιού Ομοδού',
+    nullable: true,
+    description: 'Greek title — always shown prominently regardless of active locale.',
+  })
+  titleEl!: string | null;
+
+  @ApiProperty({ enum: FestivalCategory })
+  category!: FestivalCategory;
+
+  @ApiProperty({ example: true })
+  isActive!: boolean;
+
+  @ApiProperty()
+  createdAt!: Date;
+
+  @ApiProperty()
+  updatedAt!: Date;
+
+  @ApiProperty({ type: [FestivalTranslationDto] })
+  translations!: FestivalTranslationDto[];
+
+  @ApiProperty({ type: [FestivalEditionBriefDto] })
+  editions!: FestivalEditionBriefDto[];
+
+  /**
+   * The edition to use for timeline grouping and badge logic on the list page.
+   * Null only when no published edition exists (should not occur in practice since
+   * the list endpoint only returns festivals with at least one published edition).
+   */
+  @ApiProperty({ type: FestivalEditionBriefDto, nullable: true })
+  displayEdition!: FestivalEditionBriefDto | null;
+}
+
 export class FestivalResponseDto {
   @ApiProperty({ example: 1 })
   id!: number;

@@ -47,12 +47,19 @@ interface IMonthGroup {
   festivals: IFestival[];
 }
 
+/** Returns the edition to use for list-level presentation (grouping, badges). */
+function getDisplayEdition(festival: IFestival): IFestivalEditionBrief | null {
+  return festival.displayEdition !== undefined
+    ? festival.displayEdition
+    : getLatestEdition(festival);
+}
+
 function groupByMonth(festivals: IFestival[]): IMonthGroup[] {
   const monthMap = new Map<number, IFestival[]>();
   const tba: IFestival[] = [];
 
   for (const festival of festivals) {
-    const month = getEditionMonth(getLatestEdition(festival));
+    const month = getEditionMonth(getDisplayEdition(festival));
     if (month === null) {
       tba.push(festival);
     } else {
@@ -115,7 +122,7 @@ export function FestivalsTimeline({ festivals, activeYear }: IFestivalsTimelineP
 
             <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
               {groupFestivals.map((festival) => {
-                const edition = getLatestEdition(festival);
+                const edition = getDisplayEdition(festival);
                 const ongoing = isOngoing(edition);
                 const soon = !ongoing && isSoon(edition);
 

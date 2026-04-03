@@ -66,13 +66,15 @@ Both tracks are designed to evolve in phases. Nothing here should be implemented
 - No full installability (manifest icons are required)
 - No push notifications
 - No background sync
-- No unit tests
-- No integration tests
 - No end-to-end tests
-- No test infrastructure (test runner, testing libraries, mocks, fixtures)
 - No automated CI for lint, typecheck, or tests
 - No PWA-specific test coverage
 - No platform detection layer beyond the Telegram bridge stub
+
+### Recently added
+
+- **`apps/web` unit test foundation** — Vitest + @testing-library/react, jsdom environment, MantineProvider + QueryClient render wrapper; first tests cover entity model helpers and a shared UI component
+- **`apps/api` unit tests** — Jest + ts-jest; `selectDisplayEdition` helper tested with 8 cases
 
 ---
 
@@ -196,7 +198,9 @@ The goal of this phase is to have a working test infrastructure, not high covera
 - E2E tests — do not mix concerns; unit and integration testing infrastructure should be stable first
 - Mocking the database — never mock the database in integration tests; instead test against real data shapes using fixtures
 
-**Exit criteria:** test runner is configured, at minimum one test per shared layer exists, tests run in CI.
+**Exit criteria:** test runner is configured, at minimum one test per shared layer exists, tests run in CI. ✓ All criteria met — Vitest is configured in `apps/web`, first tests cover entity model and shared UI, and CI runs automatically via `.github/workflows/ci.yml`.
+
+**Note:** frontend tests use Vitest, while backend tests use Jest. This is an intentional split based on tooling suitability and does not require unification.
 
 ---
 
@@ -329,7 +333,7 @@ The following items are explicitly out of scope for the near term. Adding them b
 | PWA | Phase 1 — Ready | Complete |
 | PWA | Phase 2 — Installable | After core product flows |
 | PWA | Phase 3 — Offline + advanced | Post-MVP1 |
-| Testing | Phase 1 — Unit/integration | Before first domain feature grows large |
+| Testing | Phase 1 — Unit/integration | **In progress** — Vitest foundation in place, first tests added |
 | Testing | Phase 2 — E2E | After first full public flow |
 | Testing | Phase 3 — PWA/platform-specific | After PWA Phase 2 |
 | Platform | Telegram bridge stubs | Complete |

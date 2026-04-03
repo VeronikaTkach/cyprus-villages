@@ -191,3 +191,14 @@ The following target stack is adopted for Cyprus Villages:
 - PostgreSQL 18
 
 This stack was chosen because it is modern, portfolio-strong, type-safe, scalable, and practical for a frontend-focused developer who wants to build a high-quality backend and database layer without unnecessary low-level complexity.
+
+## Testing stack
+
+The project uses different testing tools for frontend and backend:
+
+- **Frontend (`apps/web`):** Vitest + `@testing-library/react` — chosen for fast execution, native ESM support, and alignment with the React/Vite ecosystem.
+- **Backend (`apps/api`):** Jest — used for service-level unit tests where the Node.js environment and NestJS patterns are primary.
+
+This split is intentional and reflects ecosystem fit rather than inconsistency.
+
+There is no requirement to unify the test runners unless a concrete need arises.

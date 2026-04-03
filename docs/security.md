@@ -36,6 +36,7 @@ Authentication is cookie-based JWT:
 - **Transport:** the browser attaches the cookie automatically on every request to the same origin. `shared/api/http-client.ts` uses `credentials: 'include'` on all fetch calls.
 - **Guard:** `JwtAuthGuard` extracts the token from the cookie first, with an `Authorization: Bearer` header fallback (kept for Swagger UI compatibility). `RolesGuard` enforces role-based access (`EDITOR`, `CONTENT_ADMIN`, `SUPER_ADMIN`).
 - **Logout:** `POST /api/v1/auth/logout` clears the cookie server-side and returns `{ ok: true }`. A logout button is present in the admin header.
+- **Session probe:** `GET /api/v1/auth/me` is a lightweight protected endpoint that returns `{ ok: true }` when the cookie is valid and `401` when it is expired or absent. `AdminLayout` calls it on mount to detect stale persisted `isAuthenticated` state — without this, a user whose cookie has expired but whose localStorage flag is still set would remain "authenticated" in the UI indefinitely.
 - **401 handling:** the HTTP client detects a 401 response, sets `isAuthenticated: false` in the Zustand store (for the UI redirect guard), and redirects to `/admin/login`.
 - **Rate limiting:** `POST /auth/login` is protected by `@nestjs/throttler` — 5 attempts per 10 minutes per IP.
 

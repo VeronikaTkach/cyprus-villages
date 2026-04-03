@@ -1,6 +1,6 @@
 # Cyprus Villages — Project Progress
 
-> Last updated: 2026-03-28 (security hardening complete: httpOnly cookie auth, rate limiting, logout, audit log attribution)
+> Last updated: 2026-03-30 (C1/C3 complete; testing foundation in place; docs consistency audit)
 
 ---
 
@@ -14,9 +14,9 @@ Full snapshot: [`docs/audits/2026-03-27-architecture-audit.md`](audits/2026-03-2
 
 ## Next priority
 
-1. **Frontend festival filters** — wire `category`, `villageId`, `year`, `month` filter UI; sync active filters to URL search params (Phase C1 frontend).
-2. **Calendar / timeline view** — grouped-by-month layout on the public festivals page (Phase C3).
-3. **Village page: festival list** — include related festivals with active editions in the village detail page (Phase C2).
+1. **Village page: festival list** — include related festivals with active editions on the village detail page (Phase C2).
+2. **Map festivals endpoint** — lightweight `GET /map/festivals` for the map view (remaining C1 backend item).
+3. **PWA icons** — add icon set and complete installability criteria (Phase D5).
 
 ---
 
@@ -137,7 +137,7 @@ Full snapshot: [`docs/audits/2026-03-27-architecture-audit.md`](audits/2026-03-2
 | `/[locale]/` | Placeholder with welcome text |
 | `/[locale]/villages` | Grid of VillageCard, EmptyState |
 | `/[locale]/villages/[slug]` | Detail + map with village centre point (teal) |
-| `/[locale]/festivals` | Grid of FestivalCard, EmptyState |
+| `/[locale]/festivals` | Filter bar (category/village/year/month), scrollable month strip, timeline grouped by month with Soon/Ongoing badges; URL-synced filters |
 | `/[locale]/festivals/[slug]` | Detail + map with venue (blue) + parking (orange) |
 | `/[locale]/map` | Cyprus overview: village centres + festival venues, zoom 9 |
 
@@ -178,6 +178,7 @@ Full snapshot: [`docs/audits/2026-03-27-architecture-audit.md`](audits/2026-03-2
 
 - [x] Backend: `auth` module — JWT login (`POST /auth/login`), `JwtAuthGuard`, `RolesGuard`, `@Roles()` decorator
 - [x] Backend: protect all `admin/*` controllers with `JwtAuthGuard + RolesGuard`
+- [x] Backend: `GET /auth/me` session probe — lightweight protected endpoint; `AdminLayout` calls it on mount to detect stale `isAuthenticated` after cookie expiry (see security.md)
 - [x] Frontend: `/admin/login` page with login form
 - [x] Frontend: `isAuthenticated` flag (Zustand + localStorage persist, key `cv-auth-ui`); no token in browser storage
 - [x] Frontend: redirect to `/admin/login` on 401 and on missing flag
@@ -210,15 +211,14 @@ Full snapshot: [`docs/audits/2026-03-27-architecture-audit.md`](audits/2026-03-2
 > and the village page does not show related festivals. This phase makes the
 > public site genuinely useful as a festival calendar.
 
-#### C1 — Festival filtering and search
-
-Currently the festival list loads in full with no filtering.
+#### C1 — Festival filtering and search ✓ COMPLETE
 
 - [x] Backend: query parameters on `GET /festivals` — `?category=`, `?villageId=`, `?year=`, `?month=` (month filtered in-memory; see architecture.md)
+- [x] Backend: `displayEdition` presentation helper on list response — deterministic per-request selection based on active year/month filters; all 4 cases tested (see architecture.md)
+- [x] Frontend: filter UI — `_FestivalsFilter.tsx` (category, village, year, month selects)
+- [x] Frontend: `usePublicFestivals` accepts and forwards filter params
+- [x] Frontend: URL sync — filters derive from `useSearchParams()`; invalid params sanitized
 - [ ] Backend: `GET /map/festivals` — lightweight endpoint for the map view (id, slug, titleEl, lat, lng)
-- [ ] Frontend: `features/filter-festivals` — filter UI (category, village, month)
-- [ ] Frontend: update `usePublicFestivals` to accept and forward filter params
-- [ ] Frontend: sync active filters to URL search params
 
 #### C2 — Village page: festival list
 
@@ -227,11 +227,11 @@ Currently the village detail page shows only description and a map.
 - [ ] Backend: `GET /villages/:slug` — include `festivals[]` with their active editions
 - [ ] Frontend: "Festivals" section on `_VillageDetailView` — list of FestivalCards linked to the village
 
-#### C3 — Festival calendar view
+#### C3 — Festival calendar view ✓ COMPLETE
 
-- [ ] Frontend: calendar/timeline layout for `/[locale]/festivals` — grouped by month
-- [ ] Frontend: "Coming soon" / "Happening now" badge on festival cards
-- [ ] Frontend: `/[locale]/festivals?month=YYYY-MM` with month navigation
+- [x] Frontend: `_FestivalsTimeline.tsx` — month-grouped sections with `Divider` headings; uses `displayEdition` for grouping and badge logic
+- [x] Frontend: "Coming soon" (30-day window) / "Happening now" (active date range) badges on festival cards
+- [x] Frontend: `_MonthStrip.tsx` — scrollable month strip; enabled months derived from `displayEdition`; toggles `?month=` filter
 
 ---
 
@@ -260,13 +260,15 @@ Currently coordinates are entered as plain numbers in input fields.
 - [ ] Frontend: `features/admin-festival` — clickable map in FestivalEditionForm for venue and parking coords
 - [ ] Shared: `MapPickerControl` in `shared/ui/map` — map component that emits a lat/lng on click
 
-#### D3 — Testing foundation (Vitest)
+#### D3 — Testing foundation (Vitest) ✓ COMPLETE
 
-- [ ] Configure Vitest in `apps/web`
-- [ ] Test utilities: render helpers, QueryClient mock, Mantine provider wrapper
-- [ ] Unit tests: `shared/ui` components (render, props), helpers (`getFestivalTranslation`, `formatDateRange`, `getLatestEdition`)
-- [ ] Unit tests: entity model functions
-- [ ] CI: run lint + typecheck + tests on every PR (GitHub Actions or equivalent)
+- [x] Configure Vitest in `apps/web` — `vitest.config.ts`, jsdom environment, `@vitejs/plugin-react`
+- [x] Test utilities: `src/test/setup.ts` (jest-dom + ResizeObserver), `src/test/render.tsx` (MantineProvider + QueryClientProvider wrapper)
+- [x] Unit tests: `EmptyState` component (render, props, conditional description)
+- [x] Unit tests: `getLatestEdition`, `getFestivalTranslation` (locale fallback logic)
+- [x] Unit tests: `formatDate`, `formatDateRange` (date range formatting, edge cases)
+- [x] Backend unit tests (Jest + ts-jest): `selectDisplayEdition` in `apps/api` — 8 cases covering all filter combinations
+- [x] CI (GitHub Actions) runs lint, typecheck, and tests on every push/PR — `.github/workflows/ci.yml`
 
 #### D4 — E2E tests (Playwright)
 

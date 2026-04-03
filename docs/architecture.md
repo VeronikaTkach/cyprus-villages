@@ -428,6 +428,7 @@ GET    /api/v1/admin/audit-log
 3. Migrations must be versioned.
 4. Seed data must be available for local development.
 5. Status and activity fields must support archiving and publishing workflows.
+6. The Prisma client is not generated automatically on install. Any environment (local or CI) must run `pnpm db:generate` before typechecking or running the backend. This requirement is enforced in CI and must be preserved.
 
 ---
 
@@ -501,6 +502,21 @@ This is an intentional MVP simplification:
 **Future optimisation:** if the dataset grows, month filtering should move fully to the database level (e.g. using a raw `EXTRACT(MONTH FROM "startDate") = $1` condition or a generated column). Any such migration must preserve two invariants:
 1. Filtering is applied only to `PUBLISHED` editions — draft, archived, and cancelled editions must never influence public results.
 2. `Festival` and `FestivalEdition` semantics must remain separate — a festival must not be excluded based on its own fields when the filter concern belongs to its editions.
+
+### displayEdition — presentation helper on the public list response
+
+`GET /api/v1/festivals` includes a `displayEdition` field on each festival in the list. This is a **presentation helper**, not a domain merge — `Festival` and `FestivalEdition` remain distinct entities.
+
+`displayEdition` is the specific published edition the frontend should use for timeline grouping, date display, and Soon/Ongoing badge logic. It is selected based on the active request filters:
+
+- **year + month**: edition matching both year and `startDate` month
+- **year only**: edition matching year
+- **month only**: edition with `startDate` in that month (TBA editions with `null startDate` are never matched)
+- **no filters**: latest published edition (year desc)
+
+If no edition matches the active filter, the selection falls back to all published editions. Within any candidate group, the tiebreak is: year desc → startDate asc (nulls last) → id desc.
+
+`displayEdition` is absent on the detail (slug) endpoint — use `editions[0]` there.
 
 ### Time fields as "HH:mm" strings
 

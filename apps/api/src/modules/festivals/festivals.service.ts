@@ -9,6 +9,13 @@ import { FestivalsRepository, TFestivalRecord } from './festivals.repository';
 import { CreateFestivalDto } from './dto/create-festival.dto';
 import { UpdateFestivalDto } from './dto/update-festival.dto';
 import { PublicFestivalsFilterDto } from './dto/public-festivals-filter.dto';
+import { selectDisplayEdition } from './festivals.helpers';
+import type { TEdition } from './festivals.helpers';
+
+/** A festival record augmented with the presentation-helper displayEdition field. */
+export type TFestivalPublicListItem = TFestivalRecord & {
+  displayEdition: TEdition | null;
+};
 
 @Injectable()
 export class FestivalsService {
@@ -20,7 +27,7 @@ export class FestivalsService {
   // ── Public reads ──────────────────────────────────────────
   // Public callers only see PUBLISHED editions.
 
-  async getActiveFestivals(filters: PublicFestivalsFilterDto = {}): Promise<TFestivalRecord[]> {
+  async getActiveFestivals(filters: PublicFestivalsFilterDto = {}): Promise<TFestivalPublicListItem[]> {
     const festivals = await this.festivalsRepository.findAllActive({
       category: filters.category,
       villageId: filters.villageId,
@@ -42,7 +49,14 @@ export class FestivalsService {
         .filter((f) => f.editions.length > 0);
     }
 
-    return results;
+    // Attach the presentation-helper edition before returning.
+    return results.map((f) => ({
+      ...f,
+      displayEdition: selectDisplayEdition(f.editions, {
+        year: filters.year,
+        month: filters.month,
+      }),
+    }));
   }
 
   async getFestivalBySlug(slug: string): Promise<TFestivalRecord> {

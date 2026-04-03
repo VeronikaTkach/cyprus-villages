@@ -97,6 +97,7 @@ Layers:
 6. Use soft delete / archive.
 7. Maintain Swagger/OpenAPI.
 8. Never instantiate `PrismaClient` directly — always use the injected `PrismaService`. Prisma 7.5 removed the binary engine; `new PrismaClient()` without a driver adapter throws at runtime. In scripts, follow the `PrismaPg` adapter pattern in `database/prisma/seed/index.ts`.
+9. Prisma client must be generated before running typecheck or backend code (`pnpm db:generate`).
 
 ---
 
@@ -118,9 +119,12 @@ infra/
   docker/
   env/
 docs/
-  architecture/
-  api/
-  database/
+  architecture.md
+  progress.md
+  security.md
+  roadmap-pwa-testing.md
+  stack-decisions.md
+  audits/
 ```
 
 ---
@@ -196,7 +200,7 @@ docs/
 
 ## Documentation rules
 
-1. Document non-obvious decisions in `docs/architecture/`.
+1. Document non-obvious decisions in `docs/architecture.md`.
 2. Document invariants not enforced by DB.
 3. Mark MVP simplifications explicitly.
 4. Keep docs aligned with code.

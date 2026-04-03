@@ -60,6 +60,13 @@ export interface IFestival {
   updatedAt: string;
   translations: IFestivalTranslation[];
   editions: IFestivalEditionBrief[];
+  /**
+   * Presentation helper set by the list endpoint.
+   * The edition the UI should use for timeline grouping, date display, and
+   * Soon/Ongoing badges — respects active year/month filters.
+   * Present on list responses; absent on detail (slug) responses.
+   */
+  displayEdition?: IFestivalEditionBrief | null;
 }
 
 // ─── DTOs ─────────────────────────────────────────────────────────────────────

@@ -69,7 +69,11 @@ export function FestivalsListView() {
   const activeMonths = useMemo(() => {
     const months = new Set<number>();
     for (const festival of festivals ?? []) {
-      const edition = getLatestEdition(festival);
+      // Prefer displayEdition when present (respects active filters); fall back to latest.
+      const edition =
+        festival.displayEdition !== undefined
+          ? festival.displayEdition
+          : getLatestEdition(festival);
       if (edition && !edition.isDateTba && edition.startDate) {
         months.add(new Date(edition.startDate).getMonth() + 1);
       }

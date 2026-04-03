@@ -9,7 +9,7 @@ import {
 } from '@nestjs/swagger';
 import { FestivalCategory } from '@prisma/client';
 import { FestivalsService } from './festivals.service';
-import { FestivalResponseDto } from './dto/festival-response.dto';
+import { FestivalResponseDto, PublicFestivalListItemDto } from './dto/festival-response.dto';
 import { PublicFestivalsFilterDto } from './dto/public-festivals-filter.dto';
 
 /**
@@ -26,16 +26,18 @@ export class FestivalsController {
   @ApiOperation({
     summary: 'List all active festivals',
     description:
-      'Returns all active festivals sorted by English title. ' +
-      'Each festival includes its PUBLISHED editions ordered by year descending. ' +
+      'Returns all active festivals sorted by Greek title. ' +
+      'Each festival includes its PUBLISHED editions ordered by year descending, ' +
+      'plus a `displayEdition` presentation helper — the edition to use for ' +
+      'timeline grouping, date display, and Soon/Ongoing badges. ' +
       'All query parameters are optional — omitting them returns all active festivals.',
   })
-  @ApiOkResponse({ type: [FestivalResponseDto] })
+  @ApiOkResponse({ type: [PublicFestivalListItemDto] })
   @ApiQuery({ name: 'category', required: false, enum: FestivalCategory, description: 'Filter by category' })
   @ApiQuery({ name: 'villageId', required: false, type: Number, description: 'Filter by village ID' })
   @ApiQuery({ name: 'year', required: false, type: Number, description: 'Filter by edition year (must have a published edition in that year)' })
   @ApiQuery({ name: 'month', required: false, type: Number, description: 'Filter by edition start month 1–12' })
-  getFestivals(@Query() filters: PublicFestivalsFilterDto): Promise<FestivalResponseDto[]> {
+  getFestivals(@Query() filters: PublicFestivalsFilterDto): Promise<PublicFestivalListItemDto[]> {
     return this.festivalsService.getActiveFestivals(filters);
   }
 
