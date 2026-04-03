@@ -1,4 +1,4 @@
-import { render, type RenderOptions } from '@testing-library/react';
+import { render, type RenderOptions, type RenderResult } from '@testing-library/react';
 import { MantineProvider } from '@mantine/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { type ReactElement } from 'react';
@@ -28,7 +28,7 @@ function TestProviders({ children }: { children: React.ReactNode }) {
  * Wraps the rendered tree in MantineProvider and QueryClientProvider
  * so components that depend on either can be tested without additional setup.
  */
-function renderWithProviders(ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) {
+function renderWithProviders(ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>): RenderResult {
   return render(ui, { wrapper: TestProviders, ...options });
 }
 
