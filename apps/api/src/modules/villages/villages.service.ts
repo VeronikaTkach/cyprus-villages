@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { AuditAction, Prisma } from '@prisma/client';
 import { PrismaService } from '../../common/database';
-import { VillagesRepository, TVillageRecord } from './villages.repository';
+import { VillagesRepository, TVillageRecord, TVillageWithFestivals } from './villages.repository';
 import { CreateVillageDto } from './dto/create-village.dto';
 import { UpdateVillageDto } from './dto/update-village.dto';
 
@@ -22,8 +22,8 @@ export class VillagesService {
     return this.villagesRepository.findAllActive();
   }
 
-  async getVillageBySlug(slug: string): Promise<TVillageRecord> {
-    const village = await this.villagesRepository.findBySlug(slug);
+  async getVillageBySlug(slug: string): Promise<TVillageWithFestivals> {
+    const village = await this.villagesRepository.findBySlugWithFestivals(slug);
 
     if (!village || !village.isActive) {
       throw new NotFoundException(`Village '${slug}' not found`);

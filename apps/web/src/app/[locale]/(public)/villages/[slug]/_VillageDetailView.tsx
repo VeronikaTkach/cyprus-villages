@@ -1,11 +1,12 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { Divider, Group, Stack, Text, Title } from '@mantine/core';
+import { Divider, Group, SimpleGrid, Stack, Text, Title } from '@mantine/core';
 import { IconMapPin } from '@tabler/icons-react';
-import { LoadingState, LeafletMap } from '@/shared/ui';
+import { EmptyState, LoadingState, LeafletMap } from '@/shared/ui';
 import type { IMapMarker } from '@/shared/ui';
 import { usePublicVillage, getTranslation } from '@/entities/village';
+import { FestivalCard } from '@/entities/festival';
 import { usePublicMapPoints, locationPointTypeToMarkerKind } from '@/entities/location-point';
 
 interface IVillageDetailViewProps {
@@ -15,6 +16,7 @@ interface IVillageDetailViewProps {
 export function VillageDetailView({ slug }: IVillageDetailViewProps) {
   const locale = useLocale();
   const t = useTranslations('villages');
+  const tFestivals = useTranslations('festivals');
   const { data: village, isLoading, isError } = usePublicVillage(slug);
   const { data: allMapPoints } = usePublicMapPoints();
 
@@ -85,6 +87,22 @@ export function VillageDetailView({ slug }: IVillageDetailViewProps) {
           />
         </>
       )}
+
+      <Divider />
+      <div>
+        <Title order={2} mb="md">
+          {tFestivals('title')}
+        </Title>
+        {village.festivals && village.festivals.length > 0 ? (
+          <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+            {village.festivals.map((festival) => (
+              <FestivalCard key={festival.id} festival={festival} />
+            ))}
+          </SimpleGrid>
+        ) : (
+          <EmptyState title={tFestivals('empty')} />
+        )}
+      </div>
     </Stack>
   );
 }

@@ -1,3 +1,5 @@
+import type { IFestival } from '@/entities/festival/model';
+
 export interface IVillageTranslation {
   locale: string;
   name: string;
@@ -16,6 +18,12 @@ export interface IVillage {
   createdAt: string;
   updatedAt: string;
   translations: IVillageTranslation[];
+  /**
+   * Present only on detail responses (GET /villages/:slug).
+   * Contains active festivals with at least one PUBLISHED edition.
+   * Absent on the list endpoint (GET /villages).
+   */
+  festivals?: IFestival[];
 }
 
 export interface ICreateVillageDto {

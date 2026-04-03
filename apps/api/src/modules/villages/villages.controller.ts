@@ -7,7 +7,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { VillagesService } from './villages.service';
-import { VillageResponseDto } from './dto/village-response.dto';
+import { VillageDetailResponseDto, VillageResponseDto } from './dto/village-response.dto';
 
 /**
  * Public read-only endpoints for villages.
@@ -37,9 +37,9 @@ export class VillagesController {
       'Returns 404 if the village does not exist or is not active.',
   })
   @ApiParam({ name: 'slug', example: 'omodos', description: 'Village URL slug' })
-  @ApiOkResponse({ type: VillageResponseDto })
+  @ApiOkResponse({ type: VillageDetailResponseDto })
   @ApiNotFoundResponse({ description: 'Village not found or not active' })
-  getVillageBySlug(@Param('slug') slug: string): Promise<VillageResponseDto> {
+  getVillageBySlug(@Param('slug') slug: string): Promise<VillageDetailResponseDto> {
     return this.villagesService.getVillageBySlug(slug);
   }
 }
