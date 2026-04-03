@@ -111,6 +111,19 @@ describe('selectDisplayEdition', () => {
     expect(result?.id).toBe(11); // startDate asc → earliest date wins; equal dates → stable (insertion order)
   });
 
+  // Equal startDate: stable sort preserves original array order (id-desc tiebreaker not reached)
+  it('preserves original array order for editions with the same startDate (stable sort, not id-desc)', () => {
+    // id=20 has a HIGHER id than id=5, but it appears LATER in the array.
+    // If id-desc were applied, id=20 would win. Instead, stable sort preserves
+    // insertion order, so id=5 (first in array) wins.
+    const editions = [
+      ed(5,  2025, '2025-08-10'),
+      ed(20, 2025, '2025-08-10'),
+    ];
+    const result = selectDisplayEdition(editions, { year: 2025, month: 8 });
+    expect(result?.id).toBe(5);
+  });
+
   // Empty input
   it('returns null for an empty editions list', () => {
     expect(selectDisplayEdition([], {})).toBeNull();
