@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { ActionIcon, AppShell, Burger, Center, Group, Loader, Text, Tooltip } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
@@ -15,15 +15,14 @@ interface IAdminLayoutProps {
 
 export function AdminLayout({ children }: IAdminLayoutProps) {
   const [opened, { toggle }] = useDisclosure();
-  const [mounted, setMounted] = useState(false);
+  // useSyncExternalStore returns false on the server and during initial hydration,
+  // then true on the client — equivalent to useState(false)+useEffect setMounted(true)
+  // but without calling setState inside an effect body.
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
   const router = useRouter();
   const pathname = usePathname();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const setAuthenticated = useAuthStore((s) => s.setAuthenticated);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Probe the backend once after hydration to detect a stale persisted isAuthenticated flag.
   // If the cookie is missing or expired, the 401 response triggers handleUnauthorized,

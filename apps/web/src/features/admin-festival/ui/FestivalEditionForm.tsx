@@ -1,7 +1,7 @@
 'use client';
 
 import { z } from 'zod';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Alert,
@@ -369,17 +369,12 @@ function CreateEditionForm({
   isPending,
   error,
 }: Extract<TFestivalEditionFormProps, { mode: 'create' }>) {
-  const {
-    control,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm<TCreateEditionValues>({
+  const { control, handleSubmit } = useForm<TCreateEditionValues>({
     resolver: zodResolver(createEditionSchema),
     defaultValues: { isDateTba: false },
   });
 
-  const isDateTba = watch('isDateTba') ?? false;
+  const isDateTba = useWatch({ control, name: 'isDateTba' }) ?? false;
 
   const handleFormSubmit = handleSubmit((values) => {
     const cleaned = cleanStrings(values) as ICreateFestivalEditionDto;
@@ -436,11 +431,7 @@ function EditEditionForm({
   isPending,
   error,
 }: Extract<TFestivalEditionFormProps, { mode: 'edit' }>) {
-  const {
-    control,
-    handleSubmit,
-    watch,
-  } = useForm<TEditEditionValues>({
+  const { control, handleSubmit } = useForm<TEditEditionValues>({
     resolver: zodResolver(editEditionSchema),
     defaultValues: {
       isDateTba: defaultValues.isDateTba ?? false,
@@ -460,7 +451,7 @@ function EditEditionForm({
     },
   });
 
-  const isDateTba = watch('isDateTba') ?? false;
+  const isDateTba = useWatch({ control, name: 'isDateTba' }) ?? false;
 
   const handleFormSubmit = handleSubmit((values) => {
     onSubmit(cleanStrings(values) as IUpdateFestivalEditionDto);
