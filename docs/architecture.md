@@ -518,6 +518,12 @@ If no edition matches the active filter, the selection falls back to all publish
 
 `displayEdition` is absent on the detail (slug) endpoint — use `editions[0]` there.
 
+### Village detail: embedded festivals (GET /villages/:slug)
+
+`GET /api/v1/villages/:slug` includes a `festivals[]` field alongside the village data. Only active festivals that have at least one `PUBLISHED` edition are included. Each festival's `editions` array is pre-filtered to `PUBLISHED` only — the full array is returned as-is; there is no `displayEdition` helper on this endpoint.
+
+Festivals are ordered by `titleEl` ascending. This is a simple alphabetical sort on the Greek title and is not locale-aware — a locale-sensitive sort can be introduced once the localization layer matures.
+
 ### Time fields as "HH:mm" strings
 
 `FestivalEdition.startTime` and `endTime` are stored as plain `String` in `"HH:mm"` format.
