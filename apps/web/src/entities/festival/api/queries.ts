@@ -9,6 +9,7 @@ import {
   fetchAllFestivals,
   fetchFestivalById,
   fetchFestivalBySlug,
+  fetchFestivalMapMarkers,
   updateFestival,
   type IPublicFestivalsFilter,
 } from './festivals.api';
@@ -21,6 +22,7 @@ export const festivalKeys = {
   publicList: (filters?: IPublicFestivalsFilter) =>
     [...festivalKeys.all, 'public', 'list', filters ?? {}] as const,
   publicDetail: (slug: string) => [...festivalKeys.all, 'public', 'detail', slug] as const,
+  mapMarkers: () => [...festivalKeys.all, 'map', 'markers'] as const,
   adminList: () => [...festivalKeys.all, 'admin', 'list'] as const,
   adminDetail: (id: number) => [...festivalKeys.all, 'admin', 'detail', id] as const,
 };
@@ -29,6 +31,13 @@ export function usePublicFestivals(filters?: IPublicFestivalsFilter) {
   return useQuery({
     queryKey: festivalKeys.publicList(filters),
     queryFn: () => fetchActiveFestivals(filters),
+  });
+}
+
+export function useFestivalMapMarkers() {
+  return useQuery({
+    queryKey: festivalKeys.mapMarkers(),
+    queryFn: fetchFestivalMapMarkers,
   });
 }
 

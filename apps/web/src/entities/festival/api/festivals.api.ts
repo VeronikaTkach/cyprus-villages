@@ -1,6 +1,18 @@
 import { httpGet, httpPatch, httpPost } from '@/shared/api/http-client';
 import type { IFestival, ICreateFestivalDto, IUpdateFestivalDto } from '../model';
 
+export interface IFestivalMapMarker {
+  id: number;
+  slug: string;
+  titleEl: string;
+  lat: number;
+  lng: number;
+}
+
+export function fetchFestivalMapMarkers(): Promise<IFestivalMapMarker[]> {
+  return httpGet<IFestivalMapMarker[]>('/map/festivals');
+}
+
 export interface IPublicFestivalsFilter {
   category?: string;
   villageId?: number;

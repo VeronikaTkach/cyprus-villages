@@ -5,7 +5,7 @@ import { Text } from '@mantine/core';
 import { LeafletMap, LoadingState } from '@/shared/ui';
 import type { IMapMarker } from '@/shared/ui';
 import { usePublicVillages, getTranslation } from '@/entities/village';
-import { usePublicFestivals, getFestivalTranslation, getLatestEdition } from '@/entities/festival';
+import { useFestivalMapMarkers } from '@/entities/festival';
 import { usePublicMapPoints, locationPointTypeToMarkerKind } from '@/entities/location-point';
 
 // Cyprus geographic center
@@ -14,7 +14,7 @@ const CYPRUS_CENTER: [number, number] = [35.0, 33.2];
 export function MapView() {
   const t = useTranslations('map');
   const { data: villages, isLoading: villagesLoading, isError: villagesError } = usePublicVillages();
-  const { data: festivals, isLoading: festivalsLoading } = usePublicFestivals();
+  const { data: festivalMarkers, isLoading: festivalsLoading } = useFestivalMapMarkers();
   const { data: locationPoints } = usePublicMapPoints();
 
   const isLoading = villagesLoading || festivalsLoading;
@@ -38,21 +38,14 @@ export function MapView() {
     }
   }
 
-  // Festival edition venue points (latest edition only)
-  for (const festival of festivals ?? []) {
-    const edition = getLatestEdition(festival);
-    if (edition?.venueLat !== null && edition?.venueLng !== null && edition) {
-      const title =
-        festival.titleEl ??
-        getFestivalTranslation(festival, 'en')?.title ??
-        festival.slug;
-      markers.push({
-        lat: edition.venueLat!,
-        lng: edition.venueLng!,
-        kind: 'venue',
-        popup: title,
-      });
-    }
+  // Festival venue markers from dedicated map endpoint (representative edition, no fallback)
+  for (const marker of festivalMarkers ?? []) {
+    markers.push({
+      lat: marker.lat,
+      lng: marker.lng,
+      kind: 'venue',
+      popup: marker.titleEl,
+    });
   }
 
   // LocationPoint markers from public map API

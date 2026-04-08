@@ -9,7 +9,7 @@ import {
 } from '@nestjs/swagger';
 import { FestivalCategory } from '@prisma/client';
 import { FestivalsService } from './festivals.service';
-import { FestivalDetailResponseDto, FestivalResponseDto, PublicFestivalListItemDto } from './dto/festival-response.dto';
+import { FestivalDetailResponseDto, PublicFestivalListItemDto } from './dto/festival-response.dto';
 import { PublicFestivalsFilterDto } from './dto/public-festivals-filter.dto';
 
 /**
