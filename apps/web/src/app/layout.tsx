@@ -13,6 +13,9 @@ export const metadata: Metadata = {
   description: 'Festival calendar and guide for traditional Cypriot villages',
   applicationName: 'Cyprus Villages',
   manifest: '/manifest.json',
+  icons: {
+    apple: '/icons/apple-touch-icon.png',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',

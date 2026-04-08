@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { FestivalCategory, FestivalEditionStatus } from '@prisma/client';
+import { MediaBriefDto } from '../../media/dto/media-response.dto';
 
 export class FestivalTranslationDto {
   @ApiProperty({ example: 'en', description: 'BCP 47 locale code' })
@@ -166,4 +167,34 @@ export class FestivalResponseDto {
 
   @ApiProperty({ type: [FestivalEditionBriefDto] })
   editions!: FestivalEditionBriefDto[];
+}
+
+/**
+ * Response shape for GET /festivals/:slug.
+ * Extends the base response with COVER media.
+ */
+export class FestivalDetailResponseDto extends FestivalResponseDto {
+  @ApiProperty({ type: [MediaBriefDto], description: 'COVER images (at most 1 for MVP)' })
+  media!: MediaBriefDto[];
+}
+
+/**
+ * Compact marker shape for GET /map/festivals.
+ * Coordinates come from the representative published edition's venue.
+ */
+export class FestivalMapMarkerDto {
+  @ApiProperty({ example: 1 })
+  id!: number;
+
+  @ApiProperty({ example: 'wine-festival-omodos' })
+  slug!: string;
+
+  @ApiPropertyOptional({ nullable: true, example: 'Φεστιβάλ Κρασιού Ομοδού' })
+  titleEl!: string | null;
+
+  @ApiProperty({ example: 34.8494, description: 'Venue latitude from the representative published edition' })
+  lat!: number;
+
+  @ApiProperty({ example: 32.8108, description: 'Venue longitude from the representative published edition' })
+  lng!: number;
 }

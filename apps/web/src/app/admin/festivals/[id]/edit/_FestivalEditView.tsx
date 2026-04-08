@@ -2,10 +2,11 @@
 
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Alert, Button, Group, Text } from '@mantine/core';
+import { Alert, Button, Divider, Group, Text } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { SectionTitle, LoadingState } from '@/shared/ui';
 import { FestivalForm } from '@/features/admin-festival';
+import { CoverUpload } from '@/features/admin-media';
 import {
   useAdminFestival,
   useUpdateFestival,
@@ -107,6 +108,9 @@ export function FestivalEditView({ id }: IFestivalEditViewProps) {
         isPending={updateMutation.isPending}
         error={updateError}
       />
+
+      <Divider my="xl" />
+      <CoverUpload festivalId={id} label="Cover image" />
 
       {festival.editions.length > 0 && (
         <div style={{ marginTop: 32 }}>

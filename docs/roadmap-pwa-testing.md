@@ -62,8 +62,8 @@ Both tracks are designed to evolve in phases. Nothing here should be implemented
 
 - No service worker
 - No offline caching strategy
-- No PWA icon set
-- No full installability (manifest icons are required)
+- PWA icon set added: 192×192, 512×512, 512×512 maskable, 180×180 apple touch icon — all in `public/icons/`; manifest `icons` array and apple touch icon metadata are complete
+- Installability at the metadata/icon level is now met; a service worker is required for the Chrome desktop install prompt but not for Android Chrome or iOS Safari home screen add
 - No push notifications
 - No background sync
 - No end-to-end tests
@@ -108,17 +108,17 @@ This phase establishes the structural prerequisites for a Progressive Web App wi
 
 ### Phase 2 — Basic Installable PWA
 
-**Recommended timing: after core product flows are working**
+**Status: icon/manifest layer complete; service worker pending**
 
 This phase makes the app installable on Android and iOS home screens. At this point the app behaves identically offline and online — there is no offline functionality yet, only installability.
 
 **What belongs here:**
 
-- Full PWA icon set: at minimum 192×192 and 512×512 PNG icons in `public/icons/`
-- Updated `manifest.json` icons array pointing to the correct icon files
-- Optional but recommended: maskable icon variant for Android adaptive icons
-- Optional: Apple touch icon `<link rel="apple-touch-icon">` in the layout head
-- Validation of installability criteria in development and production builds
+- ✓ Full PWA icon set: 192×192, 512×512, 512×512 maskable PNG in `public/icons/`
+- ✓ Updated `manifest.json` icons array with correct `sizes`, `type`, `purpose`
+- ✓ Maskable icon variant for Android adaptive icons
+- ✓ Apple touch icon (`/icons/apple-touch-icon.png`) wired via Next.js `metadata.icons.apple`
+- Validation of installability criteria in Chrome DevTools / Lighthouse (manual; no service worker yet)
 
 **What does not belong here yet:**
 

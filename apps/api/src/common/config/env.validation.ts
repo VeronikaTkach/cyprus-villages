@@ -42,6 +42,29 @@ class EnvironmentVariables {
   @IsString()
   @IsOptional()
   JWT_EXPIRES_IN: string = '7d';
+
+  // ── Cloudflare R2 ──────────────────────────────────────────────────────────
+  // All four are optional so local dev without R2 still boots.
+
+  @IsString()
+  @IsOptional()
+  R2_ACCOUNT_ID: string = '';
+
+  @IsString()
+  @IsOptional()
+  R2_ACCESS_KEY_ID: string = '';
+
+  @IsString()
+  @IsOptional()
+  R2_SECRET_ACCESS_KEY: string = '';
+
+  @IsString()
+  @IsOptional()
+  R2_BUCKET_NAME: string = '';
+
+  @IsString()
+  @IsOptional()
+  R2_PUBLIC_BASE_URL: string = '';
 }
 
 export function validateEnv(config: Record<string, unknown>): EnvironmentVariables {

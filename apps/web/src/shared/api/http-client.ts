@@ -54,3 +54,33 @@ export async function httpPatch<T>(path: string, body: unknown): Promise<T> {
     body: JSON.stringify(body),
   });
 }
+
+/**
+ * Multipart file upload. Omits Content-Type so the browser sets
+ * "multipart/form-data; boundary=..." automatically.
+ */
+export async function httpUpload<T>(path: string, formData: FormData): Promise<T> {
+  const res = await fetch(`${appConfig.apiUrl}${path}`, {
+    method: 'POST',
+    credentials: 'include',
+    body: formData,
+  });
+
+  if (res.status === 401) {
+    handleUnauthorized();
+    throw new Error('Unauthorized');
+  }
+
+  if (!res.ok) {
+    let message = `HTTP ${res.status}: ${res.statusText}`;
+    try {
+      const body = (await res.json()) as { message?: string };
+      if (body.message) message = body.message;
+    } catch {
+      // ignore
+    }
+    throw new Error(message);
+  }
+
+  return res.json() as Promise<T>;
+}

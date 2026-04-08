@@ -9,7 +9,7 @@ import {
 } from '@nestjs/swagger';
 import { FestivalCategory } from '@prisma/client';
 import { FestivalsService } from './festivals.service';
-import { FestivalResponseDto, PublicFestivalListItemDto } from './dto/festival-response.dto';
+import { FestivalDetailResponseDto, FestivalResponseDto, PublicFestivalListItemDto } from './dto/festival-response.dto';
 import { PublicFestivalsFilterDto } from './dto/public-festivals-filter.dto';
 
 /**
@@ -49,9 +49,9 @@ export class FestivalsController {
       'Returns 404 if the festival does not exist or is not active.',
   })
   @ApiParam({ name: 'slug', example: 'wine-festival-omodos', description: 'Festival URL slug' })
-  @ApiOkResponse({ type: FestivalResponseDto })
+  @ApiOkResponse({ type: FestivalDetailResponseDto })
   @ApiNotFoundResponse({ description: 'Festival not found or not active' })
-  getFestivalBySlug(@Param('slug') slug: string): Promise<FestivalResponseDto> {
+  getFestivalBySlug(@Param('slug') slug: string): Promise<FestivalDetailResponseDto> {
     return this.festivalsService.getFestivalBySlug(slug);
   }
 }

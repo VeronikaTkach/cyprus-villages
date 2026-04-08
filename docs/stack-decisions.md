@@ -202,3 +202,25 @@ The project uses different testing tools for frontend and backend:
 This split is intentional and reflects ecosystem fit rather than inconsistency.
 
 There is no requirement to unify the test runners unless a concrete need arises.
+## File storage: Cloudflare R2
+
+Cloudflare R2 is used as the object storage backend for media uploads (cover images and gallery photos).
+
+### Why Cloudflare R2
+- **Zero egress fees** — unlike AWS S3 or GCS, R2 has no bandwidth charges for serving files. This is a significant cost advantage for a media-heavy site.
+- **S3-compatible API** — integrates with `@aws-sdk/client-s3` out of the box; no vendor-specific SDK required.
+- **Simple setup** — bucket + API token + public custom domain. No IAM policy complexity.
+- **Portfolio signal** — R2 is a modern, production-grade choice for greenfield projects started in 2024+.
+
+### Why not AWS S3
+S3 egress fees would add up quickly for a public tourism site with many image views. R2 is the obvious cost-optimised alternative.
+
+### Why not storing images in PostgreSQL
+Binary data in Postgres increases DB size and backup times significantly, and prevents CDN delivery of assets.
+
+### Implementation
+- `StorageService` in `common/storage/` wraps the S3 client.
+- Files are stored with keys of the form `{villages|festivals|festival-editions}/{id}/{cover|gallery}-{uuid}.{ext}`.
+- Metadata (URL, alt text, dimensions, kind, owner FK) is stored in the `Media` table in PostgreSQL.
+- The public URL is assembled from `R2_PUBLIC_BASE_URL + "/" + key`.
+- All five R2 env vars default to empty string so local dev without R2 still boots; upload attempts will fail at runtime with an AWS SDK error.

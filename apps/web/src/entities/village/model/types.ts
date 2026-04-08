@@ -1,4 +1,5 @@
 import type { IFestival } from '@/entities/festival/model';
+import type { IMediaBrief } from '@/entities/media/model';
 
 export interface IVillageTranslation {
   locale: string;
@@ -24,6 +25,11 @@ export interface IVillage {
    * Absent on the list endpoint (GET /villages).
    */
   festivals?: IFestival[];
+  /**
+   * Present only on detail responses (GET /villages/:slug).
+   * COVER images — at most 1 for MVP.
+   */
+  media?: IMediaBrief[];
 }
 
 export interface ICreateVillageDto {

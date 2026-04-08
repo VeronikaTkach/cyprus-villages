@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { FestivalCategory, FestivalEditionStatus, Prisma } from '@prisma/client';
+import { FestivalCategory, FestivalEditionStatus, MediaKind, Prisma } from '@prisma/client';
 import { PrismaService } from '../../common/database';
 
 interface IFindAllActiveFilters {
@@ -60,6 +60,49 @@ export type TFestivalRecord = Prisma.FestivalGetPayload<{
   select: typeof festivalSelect;
 }>;
 
+// ── Detail select — used only for GET /festivals/:slug ────────────────────────
+// Extends the base fields with COVER media (at most 1 for MVP).
+
+const festivalDetailSelect = {
+  ...festivalSelect,
+  media: {
+    where: { kind: MediaKind.COVER },
+    select: { id: true, url: true, alt: true, width: true, height: true },
+    orderBy: { createdAt: 'desc' as const },
+    take: 1,
+  },
+} satisfies Prisma.FestivalSelect;
+
+export type TFestivalWithMedia = Prisma.FestivalGetPayload<{
+  select: typeof festivalDetailSelect;
+}>;
+
+// ── Map select — used only for GET /map/festivals ─────────────────────────────
+// Fetches only the fields required to produce a map marker.
+// Editions are pre-filtered to PUBLISHED and limited to the fields needed for
+// the edition-selection tiebreak (id, year, startDate) plus venue coordinates.
+
+const festivalMapSelect = {
+  id: true,
+  slug: true,
+  titleEl: true,
+  editions: {
+    where: { status: FestivalEditionStatus.PUBLISHED },
+    select: {
+      id: true,
+      year: true,
+      startDate: true,
+      venueLat: true,
+      venueLng: true,
+    },
+    orderBy: { year: 'desc' as const },
+  },
+} satisfies Prisma.FestivalSelect;
+
+export type TFestivalMapRow = Prisma.FestivalGetPayload<{
+  select: typeof festivalMapSelect;
+}>;
+
 @Injectable()
 export class FestivalsRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -105,10 +148,27 @@ export class FestivalsRepository {
     });
   }
 
+  findBySlugWithMedia(slug: string): Promise<TFestivalWithMedia | null> {
+    return this.prisma.festival.findUnique({
+      where: { slug },
+      select: festivalDetailSelect,
+    });
+  }
+
   findById(id: number): Promise<TFestivalRecord | null> {
     return this.prisma.festival.findUnique({
       where: { id },
       select: festivalSelect,
+    });
+  }
+
+  findForMap(): Promise<TFestivalMapRow[]> {
+    return this.prisma.festival.findMany({
+      where: {
+        isActive: true,
+        editions: { some: { status: FestivalEditionStatus.PUBLISHED } },
+      },
+      select: festivalMapSelect,
     });
   }
 

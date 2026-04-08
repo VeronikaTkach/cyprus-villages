@@ -475,6 +475,22 @@ Creating a dual-ownership point (both FKs set) is not exposed in the UI. This is
 
 This limitation is strictly in the admin UI. The domain model, service layer, and API all accept and validate dual-ownership records correctly.
 
+### Media storage: Cloudflare R2
+
+Media files (cover images, gallery photos) are stored in Cloudflare R2. The database stores metadata only — URL, alt text, dimensions, kind, and the owner FK. The `url` field in the `Media` table is the public URL served from R2 via a custom domain (`R2_PUBLIC_BASE_URL`).
+
+File keys follow the pattern `{entity}/{id}/{kind}-{uuid}.{ext}` (e.g. `villages/42/cover-abc123.jpg`).
+
+### Media deletion is hard delete (intentional exception to soft-delete rule)
+
+The project default is to soft-archive records rather than delete them. `Media` is an explicit exception:
+
+- The R2 file and DB row are removed together by `DELETE /admin/media/:id`.
+- **Reason:** orphaned files in R2 cost money; a deleted cover image has no audit or business value worth retaining.
+- This is not a general permission to hard-delete other entities — only `Media` follows this pattern.
+
+Upload constraints enforced at the API layer: max 5 MB, allowed MIME types `image/jpeg`, `image/png`, `image/webp`.
+
 ### MediaKind is a presentation role enum
 
 `MediaKind` values (`GALLERY`, `COVER`, `THUMBNAIL`) describe the presentation role of a media asset, not its file type. All values are role-oriented.
@@ -567,6 +583,10 @@ This is an intentional MVP trade-off:
 - TanStack Query caches the result, so navigating between multiple detail pages reuses the same fetch.
 
 **Future improvement:** once the point count grows or per-entity performance becomes a concern, introduce scoped endpoints (`GET /map/points?villageId=` / `GET /map/points?festivalEditionId=`) or embed relevant points directly in the entity detail API responses. The client-side filtering logic can then be replaced with a dedicated query per page context.
+
+### Festival map markers: representative edition only, no coordinate fallback
+
+`GET /api/v1/map/festivals` returns one marker per festival, using coordinates from the single representative published edition (selected by year desc → startDate asc → id desc). If that edition has null `venueLat`/`venueLng`, the festival is excluded entirely. There is no fallback to other published editions that might have valid coordinates. This is intentional — showing a marker at a stale venue would be misleading.
 
 ---
 

@@ -5,7 +5,8 @@ import {
 } from '@nestjs/common';
 import { AuditAction, FestivalEditionStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../common/database';
-import { FestivalsRepository, TFestivalRecord } from './festivals.repository';
+import { FestivalsRepository, TFestivalRecord, TFestivalWithMedia } from './festivals.repository';
+import { FestivalMapMarkerDto } from './dto/festival-response.dto';
 import { CreateFestivalDto } from './dto/create-festival.dto';
 import { UpdateFestivalDto } from './dto/update-festival.dto';
 import { PublicFestivalsFilterDto } from './dto/public-festivals-filter.dto';
@@ -59,14 +60,36 @@ export class FestivalsService {
     }));
   }
 
-  async getFestivalBySlug(slug: string): Promise<TFestivalRecord> {
-    const festival = await this.festivalsRepository.findBySlug(slug);
+  async getMapFestivals(): Promise<FestivalMapMarkerDto[]> {
+    const rows = await this.festivalsRepository.findForMap();
+    const result: FestivalMapMarkerDto[] = [];
+
+    for (const festival of rows) {
+      const edition = this.pickRepresentativeEdition(festival.editions);
+      if (edition === null || edition.venueLat === null || edition.venueLng === null) continue;
+      result.push({
+        id: festival.id,
+        slug: festival.slug,
+        titleEl: festival.titleEl,
+        lat: edition.venueLat,
+        lng: edition.venueLng,
+      });
+    }
+
+    return result;
+  }
+
+  async getFestivalBySlug(slug: string): Promise<TFestivalWithMedia> {
+    const festival = await this.festivalsRepository.findBySlugWithMedia(slug);
 
     if (!festival || !festival.isActive) {
       throw new NotFoundException(`Festival '${slug}' not found`);
     }
 
-    return this.filterPublishedEditions(festival);
+    return {
+      ...this.filterPublishedEditions(festival),
+      media: festival.media,
+    };
   }
 
   // ── Admin reads ───────────────────────────────────────────
@@ -216,6 +239,29 @@ export class FestivalsService {
   }
 
   // ── Helpers ───────────────────────────────────────────────
+
+  /**
+   * Picks the single most representative edition for map display.
+   * Applies the same tiebreak as selectDisplayEdition with no filters:
+   *   year desc → startDate asc (nulls last) → id desc.
+   *
+   * Operates on the lean map type (id, year, startDate only) so that
+   * the repository query stays minimal.
+   */
+  private pickRepresentativeEdition<T extends { id: number; year: number; startDate: Date | null }>(
+    editions: T[],
+  ): T | null {
+    if (!editions.length) return null;
+    return [...editions].sort((a, b) => {
+      if (b.year !== a.year) return b.year - a.year;
+      if (a.startDate !== b.startDate) {
+        if (!a.startDate) return 1;
+        if (!b.startDate) return -1;
+        return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+      }
+      return b.id - a.id;
+    })[0]!;
+  }
 
   private filterPublishedEditions(festival: TFestivalRecord): TFestivalRecord {
     return {

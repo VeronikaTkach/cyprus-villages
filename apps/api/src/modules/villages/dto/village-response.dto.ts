@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { FestivalCategory, FestivalEditionStatus } from '@prisma/client';
+import { MediaBriefDto } from '../../media/dto/media-response.dto';
 
 export class VillageTranslationDto {
   @ApiProperty({ example: 'en', description: 'BCP 47 locale code' })
@@ -170,4 +171,7 @@ export class VillageFestivalDto {
 export class VillageDetailResponseDto extends VillageResponseDto {
   @ApiProperty({ type: [VillageFestivalDto] })
   festivals!: VillageFestivalDto[];
+
+  @ApiProperty({ type: [MediaBriefDto], description: 'COVER images (at most 1 for MVP)' })
+  media!: MediaBriefDto[];
 }

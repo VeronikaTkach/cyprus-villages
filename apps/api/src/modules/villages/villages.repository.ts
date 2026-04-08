@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { FestivalEditionStatus, Prisma } from '@prisma/client';
+import { FestivalEditionStatus, MediaKind, Prisma } from '@prisma/client';
 import { PrismaService } from '../../common/database';
 
 // Explicit field selection — returned for all village queries.
@@ -100,6 +100,12 @@ const villageDetailSelect = {
       },
     },
     orderBy: { titleEl: 'asc' as const },
+  },
+  media: {
+    where: { kind: MediaKind.COVER },
+    select: { id: true, url: true, alt: true, width: true, height: true },
+    orderBy: { createdAt: 'desc' as const },
+    take: 1,
   },
 } satisfies Prisma.VillageSelect;
 

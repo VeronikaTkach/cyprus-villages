@@ -1,6 +1,14 @@
 # Cyprus Villages — Project Progress
 
-> Last updated: 2026-03-30 (C1/C3 complete; testing foundation in place; docs consistency audit)
+> Last updated: 2026-04-08 (Media module complete; PWA icons + installability ready; C2 complete)
+
+---
+
+## Next priority
+
+1. **D2 — Map coordinate picker** — clickable map in VillageForm and FestivalEditionForm.
+2. **D4 — E2E tests (Playwright)** — cover primary public flows and at least one admin flow.
+3. **Frontend: wire `GET /map/festivals`** — add festival markers to the `/map` overview page.
 
 ---
 
@@ -9,14 +17,6 @@
 Full architecture consistency audit completed. Overall conclusion: the architecture is holding well — all core domain invariants, FSD layer boundaries, and backend discipline are respected. No major drift found. Three concrete follow-ups identified (stale audit log TODO comments, undocumented latest-edition-only map rule, undocumented `enableImplicitConversion` setting).
 
 Full snapshot: [`docs/audits/2026-03-27-architecture-audit.md`](audits/2026-03-27-architecture-audit.md)
-
----
-
-## Next priority
-
-1. **Village page: festival list** — include related festivals with active editions on the village detail page (Phase C2).
-2. **Map festivals endpoint** — lightweight `GET /map/festivals` for the map view (remaining C1 backend item).
-3. **PWA icons** — add icon set and complete installability criteria (Phase D5).
 
 ---
 
@@ -29,6 +29,7 @@ Full snapshot: [`docs/audits/2026-03-27-architecture-audit.md`](audits/2026-03-2
 - Shared packages: `shared-types`, `shared-constants`, `shared-schemas`, `shared-config`
 - Docker Compose for local PostgreSQL
 - Environment variables via `.env.local`
+- GitHub Actions CI: lint, typecheck, and unit tests on every push/PR (`.github/workflows/ci.yml`)
 
 ---
 
@@ -41,7 +42,7 @@ Full snapshot: [`docs/audits/2026-03-27-architecture-audit.md`](audits/2026-03-2
 - `FestivalTranslation` — (festivalId, locale) unique, title, description
 - `FestivalEdition` — year, dates, isDateTba, times, venue, parking, status lifecycle, source tracking
 - `LocationPoint` — type, label, lat/lng, villageId?, festivalEditionId? (dual-ownership)
-- `Media` — url, alt, kind (GALLERY/COVER/THUMBNAIL), single-owner invariant
+- `Media` — url, alt, kind (GALLERY/COVER), single-owner invariant; files stored in Cloudflare R2
 - `User` — email, passwordHash, role (SUPER_ADMIN/CONTENT_ADMIN/EDITOR), isActive
 - `AuditLog` — entityType, entityId, action, beforeJson, afterJson, userId
 
@@ -66,10 +67,11 @@ Full snapshot: [`docs/audits/2026-03-27-architecture-audit.md`](audits/2026-03-2
 
 | Module | Public API | Admin API | Notes |
 |--------|-----------|-----------|-------|
-| `villages` | GET /villages, GET /villages/:slug | GET, POST, PATCH :id, PATCH :id/archive | Translations upsert, AuditLog |
-| `festivals` | GET /festivals?category&villageId&year&month, GET /festivals/:slug | GET, POST, PATCH :id, PATCH :id/archive | Translations upsert, AuditLog; month filter applied in-memory (see architecture.md) |
+| `villages` | GET /villages, GET /villages/:slug | GET, POST, PATCH :id, PATCH :id/archive | Translations upsert, AuditLog; detail includes festivals[] + media[] |
+| `festivals` | GET /festivals?category&villageId&year&month, GET /festivals/:slug, GET /map/festivals | GET, POST, PATCH :id, PATCH :id/archive | Translations upsert, AuditLog; month filter in-memory; detail includes media[]; map markers via FestivalsMapController |
 | `festival-editions` | — (via festival) | GET /festival/:fid, GET :id, POST, PATCH :id, PATCH :id/publish, PATCH :id/archive, PATCH :id/cancel | Status transitions, publishedAt |
-| `location-points` | GET /map/points | GET /village/:id, GET /festival-edition/:id, GET /:id, POST, PATCH /:id, PATCH /:id/archive | Dual-ownership (villageId / festivalEditionId), orphan-row invariant enforced at service layer |
+| `location-points` | GET /map/points | GET /village/:id, GET /festival-edition/:id, GET /:id, POST, PATCH /:id, PATCH /:id/archive | Dual-ownership, orphan-row invariant enforced at service layer |
+| `media` | — | POST /admin/media/upload, GET /admin/media, DELETE /admin/media/:id | Cloudflare R2 storage; hard delete (intentional — see architecture.md); upload validated: max 5 MB, image/jpeg\|png\|webp only; keys: `{entity}/{id}/cover-{timestamp}.{ext}` |
 | `health` | GET /health | — | Liveness probe |
 
 **Auth (`auth` module):**
@@ -78,17 +80,20 @@ Full snapshot: [`docs/audits/2026-03-27-architecture-audit.md`](audits/2026-03-2
 - `JwtAuthGuard` — extracts token from cookie (primary) or `Authorization: Bearer` header (Swagger fallback)
 - `RolesGuard` + `@Roles()` decorator — role-based access control
 - All admin controllers protected: `EDITOR`, `CONTENT_ADMIN`, `SUPER_ADMIN` allowed
-- All 4 domain services propagate `userId` from `@CurrentUser()` into `AuditLog` writes
+- All domain services propagate `userId` from `@CurrentUser()` into `AuditLog` writes
 
-**Stub modules (module wired, no implementation):**
-- `media` — module created, no implementation
-- `users` — module created, `UsersService.findByEmail()` implemented (used by auth)
-- `audit-log` — module created; log writes are handled inside each domain service directly
+**Infrastructure:**
+- `StorageModule` / `StorageService` (`common/storage/`) — wraps `@aws-sdk/client-s3` against the R2 endpoint; `upload()` and `deleteByUrl()`
+- R2 env vars (`R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_BASE_URL`) in `env.validation.ts`; documented in `infra/env/api.env.example`
+
+**Stub / minimal modules:**
+- `users` — `UsersService.findByEmail()` implemented (used by auth); full admin CRUD not yet done
+- `audit-log` — module wired; log writes handled inside each domain service directly
 
 **Consistent across all implemented modules:**
 - DTOs + class-validator on all incoming data
 - Separate public and admin controllers
-- Soft delete (archive) by default, no hard delete
+- Soft delete (archive) by default; Media is an explicit hard-delete exception
 - AuditLog on CREATE/UPDATE/ARCHIVE for Village and Festival
 
 ---
@@ -101,12 +106,12 @@ Full snapshot: [`docs/audits/2026-03-27-architecture-audit.md`](audits/2026-03-2
 - Mantine 8 with custom teal theme, mobile-first typography
 - TanStack Query 5 (QueryClientProvider, cache invalidation)
 - next-intl: 3 locales (en/ru/el), locale switcher in the header
-- PWA groundwork: `manifest.json`, `appleWebApp` meta, `themeColor`, `viewportFit: cover`
+- PWA: `manifest.json` (display: standalone, icons array populated), `appleWebApp` meta, `themeColor`, `viewportFit: cover`, apple touch icon via `metadata.icons.apple`
 - Telegram bridge: no-op stub in `shared/lib/telegram/`
 
 #### Shared layer (`shared/`)
 
-- `shared/api/http-client.ts` — fetch wrapper with `credentials: 'include'`; handles 401 with redirect
+- `shared/api/http-client.ts` — `httpGet`, `httpPost`, `httpPatch` (fetch + credentials: include, 401 redirect); `httpUpload` (multipart POST, no Content-Type override)
 - `shared/lib/auth` — Zustand persist store for `isAuthenticated: boolean` flag (`cv-auth-ui` localStorage key); no token stored in browser
 - `shared/ui` — `Button`, `Input`, `Select`, `Textarea`, `Card`, `Modal`, `Drawer`, `PageContainer`, `SectionTitle`, `EmptyState`, `LoadingState`
 - `shared/ui/map` — `LeafletMap` (dynamic ssr:false wrapper), `_LeafletMapInner` (MapContainer + TileLayer OSM + DivIcon markers by kind), types `IMapMarker` / `TMapMarkerKind`
@@ -114,16 +119,20 @@ Full snapshot: [`docs/audits/2026-03-27-architecture-audit.md`](audits/2026-03-2
 
 #### Entities
 
-| Entity | Types | API | UI | Queries |
-|--------|-------|-----|----|---------|
-| `village` | ✓ | ✓ | VillageCard | usePublicVillages, usePublicVillage, useAdminVillages, useAdminVillage, useCreate/Update/Archive |
-| `festival` | ✓ | ✓ | FestivalCard + constants | usePublicFestivals, usePublicFestival, useAdminFestivals, useAdminFestival, useCreate/Update/Archive |
-| `festival-edition` | ✓ | ✓ | — | useEditionsForFestival, useAdminEdition, useCreate/Update/Publish/Archive/Cancel |
+| Entity | Types | API functions | Queries | UI |
+|--------|-------|---------------|---------|-----|
+| `village` | ✓ (IVillage, media?: IMediaBrief[]) | ✓ | usePublicVillages/Village, useAdminVillages/Village, useCreate/Update/Archive | VillageCard |
+| `festival` | ✓ (IFestival, media?: IMediaBrief[]) | ✓ | usePublicFestivals/Festival, useAdminFestivals/Festival, useCreate/Update/Archive | FestivalCard + constants |
+| `festival-edition` | ✓ | ✓ | useEditionsForFestival, useAdminEdition, useCreate/Update/Publish/Archive/Cancel | — |
+| `location-point` | ✓ | ✓ | usePublicMapPoints, useAdminLocationPoints | — |
+| `media` | ✓ (IMedia, IMediaBrief) | fetchMediaByOwner, uploadCover, deleteMedia | useMediaByOwner, useUploadCover, useDeleteMedia | — |
 
-#### Features (admin forms)
+#### Features
 
 - `features/admin-village` — `VillageForm` (create/edit, locale tabs, coordinates)
 - `features/admin-festival` — `FestivalForm` (create/edit, locale tabs, category), `FestivalEditionForm` (create/edit, dates/TBA/times, venue, parking, sources)
+- `features/admin-location-point` — `LocationPointsSection` (list + inline create/edit for a village or festival-edition context)
+- `features/admin-media` — `CoverUpload` (fetches current cover, upload/delete with loading states; wired into VillageEditView and FestivalEditView)
 
 #### Widgets
 
@@ -136,9 +145,9 @@ Full snapshot: [`docs/audits/2026-03-27-architecture-audit.md`](audits/2026-03-2
 |------|-------|
 | `/[locale]/` | Placeholder with welcome text |
 | `/[locale]/villages` | Grid of VillageCard, EmptyState |
-| `/[locale]/villages/[slug]` | Detail + map with village centre point (teal) |
+| `/[locale]/villages/[slug]` | Cover image (with placeholder fallback), description, map, related festivals list |
 | `/[locale]/festivals` | Filter bar (category/village/year/month), scrollable month strip, timeline grouped by month with Soon/Ongoing badges; URL-synced filters |
-| `/[locale]/festivals/[slug]` | Detail + map with venue (blue) + parking (orange) |
+| `/[locale]/festivals/[slug]` | Cover image (with placeholder fallback), badges, dates, venue/parking, description, map |
 | `/[locale]/map` | Cyprus overview: village centres + festival venues, zoom 9 |
 
 #### Admin pages
@@ -148,19 +157,21 @@ Full snapshot: [`docs/audits/2026-03-27-architecture-audit.md`](audits/2026-03-2
 | `/admin` | Dashboard placeholder |
 | `/admin/villages` | Table with Archive action |
 | `/admin/villages/new` | Create village |
-| `/admin/villages/[id]/edit` | Edit + Archive |
+| `/admin/villages/[id]/edit` | Edit + Archive + CoverUpload + LocationPointsSection |
 | `/admin/festivals` | Table with Archive + Add Edition actions |
 | `/admin/festivals/new` | Create festival |
-| `/admin/festivals/[id]/edit` | Edit + Archive + edition list |
+| `/admin/festivals/[id]/edit` | Edit + Archive + CoverUpload + edition list |
 | `/admin/festivals/[id]/editions/new` | Create edition |
 | `/admin/festival-editions/[id]/edit` | Edit + Publish / Cancel / Archive |
 | `/admin/login` | Login form, JWT auth, redirects to `/admin` on success |
 
-#### Maps
+#### PWA icons
 
-- `LeafletMap` component — reusable, SSR-safe, 3 marker kinds with colour coding
-- Tiles: OpenStreetMap (no API key required)
-- Integrated into: village detail, festival detail, map overview page
+- `public/icons/icon-192.png` — 192×192 standard icon
+- `public/icons/icon-512.png` — 512×512 standard icon
+- `public/icons/icon-512-maskable.png` — 512×512 maskable (10% safe zone, Android adaptive)
+- `public/icons/apple-touch-icon.png` — 180×180 iOS home screen
+- Generator: `apps/web/scripts/gen-icons.mjs` (Node.js built-ins only, no external deps)
 
 ---
 
@@ -170,122 +181,81 @@ Full snapshot: [`docs/audits/2026-03-27-architecture-audit.md`](audits/2026-03-2
 
 ### Phase A — Critical blockers ✓ COMPLETE
 
-> The admin section was unprotected. JWT authentication is now in place —
-> all admin routes require a valid token. The remaining two items below are
-> low-priority follow-ups, not blockers.
+#### A1 — Authentication (Admin Auth) ✓ COMPLETE
 
-#### A1 — Authentication (Admin Auth)
-
-- [x] Backend: `auth` module — JWT login (`POST /auth/login`), `JwtAuthGuard`, `RolesGuard`, `@Roles()` decorator
-- [x] Backend: protect all `admin/*` controllers with `JwtAuthGuard + RolesGuard`
-- [x] Backend: `GET /auth/me` session probe — lightweight protected endpoint; `AdminLayout` calls it on mount to detect stale `isAuthenticated` after cookie expiry (see security.md)
-- [x] Frontend: `/admin/login` page with login form
-- [x] Frontend: `isAuthenticated` flag (Zustand + localStorage persist, key `cv-auth-ui`); no token in browser storage
-- [x] Frontend: redirect to `/admin/login` on 401 and on missing flag
-- [x] Frontend: logout button in admin header (`POST /auth/logout` + clear state + redirect)
-- [ ] Backend: `users` module — `POST /admin/users`, `PATCH /admin/users/:id`, `GET /admin/users`
+- [x] Backend: `auth` module — JWT login, `JwtAuthGuard`, `RolesGuard`, `@Roles()` decorator
+- [x] Backend: protect all `admin/*` controllers
+- [x] Backend: `GET /auth/me` session probe
+- [x] Frontend: `/admin/login` page, `isAuthenticated` Zustand store, logout
+- [ ] Backend: `users` admin CRUD (`POST /admin/users`, `PATCH /admin/users/:id`, `GET /admin/users`)
 
 ---
 
-### Phase B — Core domain completion
-
-> The domain model is fully defined in the schema but LocationPoint — one of the
-> central entities — has zero implementation. Maps currently show only the
-> denormalised venue/parking fields from FestivalEdition. This phase brings the
-> model to the state the architecture intended from the start.
+### Phase B — Core domain completion ✓ COMPLETE
 
 #### B1 — LocationPoint CRUD ✓ COMPLETE
 
-- [x] Backend: `location-points` — DTOs, repository, service, admin controller (GET /village/:id, GET /festival-edition/:id, GET /:id, POST, PATCH /:id, PATCH /:id/archive)
-- [x] Backend: public endpoint `GET /map/points` — all active points with coordinates
-- [x] Frontend: `entities/location-point` — types, API functions, queries
-- [x] Frontend: admin UI for managing points in the context of a village and a festival edition
-- [x] Frontend: render LocationPoint markers on the village and festival detail maps and the overview map
+- [x] Backend: full CRUD + public `GET /map/points`
+- [x] Frontend: entity + admin UI + map markers on detail and overview pages
 
 ---
 
 ### Phase C — Public UX improvements
 
-> With auth and the domain model complete, the focus shifts to the user-facing
-> product. The festival list currently has no filtering or discovery features,
-> and the village page does not show related festivals. This phase makes the
-> public site genuinely useful as a festival calendar.
-
 #### C1 — Festival filtering and search ✓ COMPLETE
 
-- [x] Backend: query parameters on `GET /festivals` — `?category=`, `?villageId=`, `?year=`, `?month=` (month filtered in-memory; see architecture.md)
-- [x] Backend: `displayEdition` presentation helper on list response — deterministic per-request selection based on active year/month filters; all 4 cases tested (see architecture.md)
-- [x] Frontend: filter UI — `_FestivalsFilter.tsx` (category, village, year, month selects)
-- [x] Frontend: `usePublicFestivals` accepts and forwards filter params
-- [x] Frontend: URL sync — filters derive from `useSearchParams()`; invalid params sanitized
-- [ ] Backend: `GET /map/festivals` — lightweight endpoint for the map view (id, slug, titleEl, lat, lng)
+- [x] Backend: `?category`, `?villageId`, `?year`, `?month` on `GET /festivals`; `displayEdition` helper
+- [x] Frontend: filter UI, URL sync, month strip, timeline grouped by month, Soon/Ongoing badges
+- [x] Backend: `GET /map/festivals` — returns `{ id, slug, titleEl, lat, lng }` per festival; only active festivals with ≥1 PUBLISHED edition and valid venue coordinates; representative edition selected by year desc → startDate asc → id desc
+  - Coordinates are taken from the single representative edition only. If that edition has null `venueLat`/`venueLng`, the festival is excluded entirely — there is no fallback to other published editions with valid coordinates. This is intentional.
 
-#### C2 — Village page: festival list
+#### C2 — Village page: festival list ✓ COMPLETE
 
-Currently the village detail page shows only description and a map.
-
-- [ ] Backend: `GET /villages/:slug` — include `festivals[]` with their active editions
-- [ ] Frontend: "Festivals" section on `_VillageDetailView` — list of FestivalCards linked to the village
+- [x] Backend: `GET /villages/:slug` includes `festivals[]` (active, with ≥1 PUBLISHED edition; editions pre-filtered to PUBLISHED)
+- [x] Frontend: Festivals section on `_VillageDetailView` — SimpleGrid of FestivalCards; EmptyState when none
 
 #### C3 — Festival calendar view ✓ COMPLETE
 
-- [x] Frontend: `_FestivalsTimeline.tsx` — month-grouped sections with `Divider` headings; uses `displayEdition` for grouping and badge logic
-- [x] Frontend: "Coming soon" (30-day window) / "Happening now" (active date range) badges on festival cards
-- [x] Frontend: `_MonthStrip.tsx` — scrollable month strip; enabled months derived from `displayEdition`; toggles `?month=` filter
+- [x] Frontend: `_FestivalsTimeline.tsx`, `_MonthStrip.tsx`, Soon/Ongoing badges
 
 ---
 
 ### Phase D — Platform hardening and expansion
 
-> With a secure, complete, and usable product in place, this phase covers quality
-> infrastructure (tests, CI), content richness (media, coord picker), and
-> progressive platform targets (PWA, Telegram Mini App). Items within this phase
-> can be tackled largely in parallel and in the order that best fits current
-> priorities.
+#### D1 — Media ✓ COMPLETE
 
-#### D1 — Media
-
-The model exists in the schema; no functionality is implemented.
-
-- [ ] Backend: file upload (multer or S3-compatible storage), `media` module — POST /admin/media, DELETE /admin/media/:id, attach to entities
-- [ ] Frontend: image upload component in Village/Festival admin forms
-- [ ] Frontend: render cover/gallery images on public pages
-- [ ] Frontend: `entities/media` — types and queries
+- [x] Backend: `StorageService` + `MediaModule` (upload, list, hard delete)
+- [x] Backend: upload validation — max 5 MB, image/jpeg|png|webp; structured key `{entity}/{id}/cover-{timestamp}.{ext}`
+- [x] Backend: village and festival detail responses include `media: MediaBriefDto[]`
+- [x] Frontend: `entities/media`, `features/admin-media/CoverUpload`, `httpUpload`
+- [x] Frontend: cover image on public village and festival detail pages; placeholder fallback on missing/broken image
 
 #### D2 — Map coordinate picker (Admin)
 
-Currently coordinates are entered as plain numbers in input fields.
-
-- [ ] Frontend: `features/admin-village` — clickable map in VillageForm for selecting centerLat/centerLng
-- [ ] Frontend: `features/admin-festival` — clickable map in FestivalEditionForm for venue and parking coords
-- [ ] Shared: `MapPickerControl` in `shared/ui/map` — map component that emits a lat/lng on click
+- [ ] Frontend: `MapPickerControl` in `shared/ui/map` — emits lat/lng on click
+- [ ] Frontend: wire into VillageForm (centerLat/Lng) and FestivalEditionForm (venue, parking)
 
 #### D3 — Testing foundation (Vitest) ✓ COMPLETE
 
-- [x] Configure Vitest in `apps/web` — `vitest.config.ts`, jsdom environment, `@vitejs/plugin-react`
-- [x] Test utilities: `src/test/setup.ts` (jest-dom + ResizeObserver), `src/test/render.tsx` (MantineProvider + QueryClientProvider wrapper)
-- [x] Unit tests: `EmptyState` component (render, props, conditional description)
-- [x] Unit tests: `getLatestEdition`, `getFestivalTranslation` (locale fallback logic)
-- [x] Unit tests: `formatDate`, `formatDateRange` (date range formatting, edge cases)
-- [x] Backend unit tests (Jest + ts-jest): `selectDisplayEdition` in `apps/api` — 8 cases covering all filter combinations
-- [x] CI (GitHub Actions) runs lint, typecheck, and tests on every push/PR — `.github/workflows/ci.yml`
+- [x] Vitest config, jsdom, `@vitejs/plugin-react`, test utilities (MantineProvider + QueryClient wrapper)
+- [x] Unit tests: `EmptyState`, `getLatestEdition`, `getFestivalTranslation`, `formatDate`/`formatDateRange`
+- [x] Backend unit tests (Jest): `selectDisplayEdition` — 8 cases
+- [x] CI: lint + typecheck + tests on every push/PR
 
 #### D4 — E2E tests (Playwright)
 
-- [ ] Configure Playwright: Chromium + WebKit (Safari-like), mobile viewport 390px
+- [ ] Configure Playwright: Chromium + WebKit, mobile viewport 390px
 - [ ] Core public flows: home → festival list → festival detail
-- [ ] Villages: list → detail with map
+- [ ] Villages: list → detail with map and cover image
 - [ ] Admin flows: create village, create festival, publish edition
-- [ ] Map smoke test: verify tiles and markers load without errors
+- [ ] Map smoke test
 
-#### D5 — PWA Phase 2 (Installability)
+#### D5 — PWA Phase 2 (Installability) ✓ COMPLETE
 
-Phase 1 (manifest, meta tags) is already complete.
-
-- [ ] Create icon set: at minimum 192×192 and 512×512 PNG + maskable variant
-- [ ] Populate `icons` array in `public/manifest.json`
-- [ ] Add `<link rel="apple-touch-icon">` in `app/layout.tsx`
-- [ ] Verify installability criteria in Chrome DevTools / Lighthouse
+- [x] Icon set: 192×192, 512×512, 512×512 maskable, 180×180 apple-touch-icon in `public/icons/`
+- [x] `manifest.json` icons array with correct `sizes`, `type`, `purpose`; `background_color` = `#12b886`
+- [x] Apple touch icon via `metadata.icons.apple` in `app/layout.tsx`
+- [ ] Manual Lighthouse / DevTools installability check (no service worker yet)
 
 #### D6 — Service worker and offline cache (PWA Phase 3)
 
@@ -298,18 +268,17 @@ Only after public flows are stable and tested.
 
 #### D7 — Audit Log UI
 
-- [ ] Backend: `GET /admin/audit-log` with pagination and filters (entityType, action, userId, dateRange)
-- [ ] Frontend: `/admin/audit-log` page — table showing entityType, action, user, date, diff (before/after JSON)
+- [ ] Backend: `GET /admin/audit-log` with pagination and filters
+- [ ] Frontend: `/admin/audit-log` page — table with entityType, action, user, date, before/after diff
 
 #### D8 — MVP2: Telegram Mini App
 
 A fully separate phase. Reuses the entire domain model and API.
 
 - [ ] Activate `shared/lib/telegram/` stubs — init, viewport, back-button
-- [ ] Mini App shell with Telegram theme (`useTelegramColorScheme` already in place)
+- [ ] Mini App shell with Telegram theme
 - [ ] Adapt public pages for Telegram viewport (safe area insets)
 - [ ] Deploy Telegram Bot + Mini App webhook configuration
-- [ ] Telegram bridge tests (unit + integration)
 
 ---
 
@@ -318,10 +287,11 @@ A fully separate phase. Reuses the entire domain model and API.
 | Issue | Location | Priority |
 |-------|----------|----------|
 | No pagination in admin list views | Villages, Festivals, LocationPoints | Medium |
+| Festival map markers not yet wired into the `/map` frontend page | `_MapView.tsx` | Medium |
 | Coordinates entered as plain number inputs | FestivalEditionForm, VillageForm | Low |
-| Media single-owner invariant not validated at service level | MediaService (not implemented) | Low |
+| Cover image dimensions (width/height) not extracted on upload | `MediaService.uploadCover` | Low |
 | Admin UI does not support creating dual-ownership LocationPoints | `LocationPointForm` | Low |
-| Public map points filtered client-side on detail pages; see architecture.md | `_VillageDetailView`, `_FestivalDetailView` | Low |
+| Public map points filtered client-side on detail pages | `_VillageDetailView`, `_FestivalDetailView` | Low |
 | `middleware.ts` uses deprecated API (build warning) | `apps/web/src/middleware.ts` | Low |
 | Home page `/[locale]/` is a placeholder | `(public)/page.tsx` | Low |
 | Admin dashboard `/admin` is a placeholder | `admin/page.tsx` | Low |

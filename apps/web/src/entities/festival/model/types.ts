@@ -1,3 +1,5 @@
+import type { IMediaBrief } from '@/entities/media/model';
+
 // ─── Domain enums ─────────────────────────────────────────────────────────────
 
 export type TFestivalCategory =
@@ -67,6 +69,11 @@ export interface IFestival {
    * Present on list responses; absent on detail (slug) responses.
    */
   displayEdition?: IFestivalEditionBrief | null;
+  /**
+   * Present only on detail responses (GET /festivals/:slug).
+   * COVER images — at most 1 for MVP.
+   */
+  media?: IMediaBrief[];
 }
 
 // ─── DTOs ─────────────────────────────────────────────────────────────────────

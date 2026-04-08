@@ -1,7 +1,7 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { Badge, Divider, Group, Stack, Text, Title } from '@mantine/core';
+import { Badge, Divider, Group, Image, Stack, Text, Title } from '@mantine/core';
 import { IconCalendar, IconMapPin } from '@tabler/icons-react';
 import { LoadingState, LeafletMap } from '@/shared/ui';
 import type { IMapMarker } from '@/shared/ui';
@@ -126,6 +126,17 @@ export function FestivalDetailView({ slug }: IFestivalDetailViewProps) {
           <Text c="dimmed">{latestEdition.parkingName}</Text>
         </Group>
       )}
+
+      <Image
+        src={festival.media?.[0]?.url ?? '/images/placeholder.svg'}
+        alt={festival.media?.[0]?.alt ?? (festival.titleEl ?? translation?.title ?? festival.slug)}
+        radius="md"
+        mah={360}
+        fit="cover"
+        onError={(e) => {
+          (e.currentTarget as HTMLImageElement).src = '/images/placeholder.svg';
+        }}
+      />
 
       {translation?.description && (
         <>

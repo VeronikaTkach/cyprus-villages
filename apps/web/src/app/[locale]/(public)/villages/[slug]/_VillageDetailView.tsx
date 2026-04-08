@@ -1,7 +1,7 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { Divider, Group, SimpleGrid, Stack, Text, Title } from '@mantine/core';
+import { Divider, Group, Image, SimpleGrid, Stack, Text, Title } from '@mantine/core';
 import { IconMapPin } from '@tabler/icons-react';
 import { EmptyState, LoadingState, LeafletMap } from '@/shared/ui';
 import type { IMapMarker } from '@/shared/ui';
@@ -66,6 +66,17 @@ export function VillageDetailView({ slug }: IVillageDetailViewProps) {
           </Text>
         </Group>
       )}
+
+      <Image
+        src={village.media?.[0]?.url ?? '/images/placeholder.svg'}
+        alt={village.media?.[0]?.alt ?? (translation?.name ?? village.slug)}
+        radius="md"
+        mah={360}
+        fit="cover"
+        onError={(e) => {
+          (e.currentTarget as HTMLImageElement).src = '/images/placeholder.svg';
+        }}
+      />
 
       {translation?.description && (
         <>
