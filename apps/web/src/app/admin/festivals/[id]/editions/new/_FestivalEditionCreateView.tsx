@@ -1,7 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Text } from '@mantine/core';
+import Link from 'next/link';
+import { Button, Group, Text } from '@mantine/core';
 import { LoadingState } from '@/shared/ui';
 import { FestivalEditionForm } from '@/features/admin-festival';
 import { useAdminFestival, getFestivalTranslation } from '@/entities/festival';
@@ -35,9 +36,19 @@ export function FestivalEditionCreateView({ festivalId }: IFestivalEditionCreate
 
   return (
     <>
-      <Text size="sm" c="dimmed" mb="md">
-        Adding edition for: <strong>{festival.titleEl ?? enTitle}</strong>
-      </Text>
+      <Group justify="space-between" align="center" mb="lg">
+        <Text size="sm" c="dimmed">
+          Festival: <strong>{festival.titleEl ?? enTitle}</strong>
+        </Text>
+        <Button
+          component={Link}
+          href={`/admin/festivals/${festivalId}/edit`}
+          variant="subtle"
+          size="sm"
+        >
+          ← Cancel
+        </Button>
+      </Group>
       <FestivalEditionForm
         mode="create"
         festivalId={festivalId}
