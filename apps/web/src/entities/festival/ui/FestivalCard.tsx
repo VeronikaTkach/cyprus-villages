@@ -1,6 +1,6 @@
 'use client';
 
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Badge, Card, Group, Stack, Text, Title } from '@mantine/core';
 import { getFestivalTranslation, getLatestEdition } from '../model';
 import type { IFestival } from '../model';
@@ -13,16 +13,39 @@ import {
 
 interface IFestivalCardProps {
   festival: IFestival;
+  isOngoing?: boolean;
+  isSoon?: boolean;
 }
 
-export function FestivalCard({ festival }: IFestivalCardProps) {
+export function FestivalCard({ festival, isOngoing, isSoon }: IFestivalCardProps) {
   const locale = useLocale();
-  const t = getFestivalTranslation(festival, locale);
-  const latest = getLatestEdition(festival);
+  const t = useTranslations('festivals');
+  const translation = getFestivalTranslation(festival, locale);
+  // Prefer displayEdition when present (respects active filters); fall back to latest.
+  const edition =
+    festival.displayEdition !== undefined
+      ? festival.displayEdition
+      : getLatestEdition(festival);
 
   return (
     <Card shadow="sm" padding="lg" radius="md" withBorder h="100%">
       <Stack gap="xs" h="100%">
+        {/* Ongoing / Soon badges — rendered inside the card to keep grid rows aligned */}
+        {(isOngoing || isSoon) && (
+          <Group gap="xs">
+            {isOngoing && (
+              <Badge size="xs" color="teal" variant="filled" radius="sm">
+                {t('timeline.ongoing')}
+              </Badge>
+            )}
+            {isSoon && (
+              <Badge size="xs" color="orange" variant="filled" radius="sm">
+                {t('timeline.soon')}
+              </Badge>
+            )}
+          </Group>
+        )}
+
         {/* Greek title — always shown prominently */}
         {festival.titleEl && (
           <Title order={3} lh={1.2}>
@@ -31,9 +54,9 @@ export function FestivalCard({ festival }: IFestivalCardProps) {
         )}
 
         {/* Locale title — shown below if different from Greek */}
-        {t?.title && t.title !== festival.titleEl && (
+        {translation?.title && translation.title !== festival.titleEl && (
           <Text size="sm" c="dimmed" fw={500}>
-            {t.title}
+            {translation.title}
           </Text>
         )}
 
@@ -47,31 +70,31 @@ export function FestivalCard({ festival }: IFestivalCardProps) {
           </Badge>
         </Group>
 
-        {/* Latest edition dates */}
-        {latest && (
-          <Text size="sm" c="dimmed" mt="xs">
-            {latest.isDateTba
+        {/* Edition dates — full contrast so they stand out from description */}
+        {edition && (
+          <Text size="sm" fw={500} mt="xs">
+            {edition.isDateTba
               ? 'Dates TBA'
-              : latest.startDate
-                ? formatDateRange(latest.startDate, latest.endDate)
+              : edition.startDate
+                ? formatDateRange(edition.startDate, edition.endDate)
                 : null}
-            {latest.status !== 'PUBLISHED' && (
+            {edition.status !== 'PUBLISHED' && (
               <Badge
                 ml={6}
                 variant="dot"
-                color={EDITION_STATUS_COLORS[latest.status]}
+                color={EDITION_STATUS_COLORS[edition.status]}
                 size="xs"
               >
-                {latest.status}
+                {edition.status}
               </Badge>
             )}
           </Text>
         )}
 
         {/* Description */}
-        {t?.description && (
+        {translation?.description && (
           <Text size="sm" c="dimmed" lineClamp={3} mt="auto" pt="xs">
-            {t.description}
+            {translation.description}
           </Text>
         )}
       </Stack>

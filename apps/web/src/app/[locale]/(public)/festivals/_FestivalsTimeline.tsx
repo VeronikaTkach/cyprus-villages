@@ -1,7 +1,7 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { Badge, Divider, Group, SimpleGrid, Stack, Text } from '@mantine/core';
+import { Divider, SimpleGrid, Stack, Text } from '@mantine/core';
 import { Link } from '@/i18n/navigation';
 import { FestivalCard, getLatestEdition } from '@/entities/festival';
 import type { IFestival, IFestivalEditionBrief } from '@/entities/festival';
@@ -97,7 +97,7 @@ export function FestivalsTimeline({ festivals, activeYear }: IFestivalsTimelineP
   if (!groups.length) return null;
 
   return (
-    <Stack gap="xl">
+    <Stack gap={48}>
       {groups.map(({ month, festivals: groupFestivals }) => {
         const monthLabel =
           month === null
@@ -110,14 +110,14 @@ export function FestivalsTimeline({ festivals, activeYear }: IFestivalsTimelineP
           month === null || !activeYear ? monthLabel : `${monthLabel} ${activeYear}`;
 
         return (
-          <Stack key={month ?? 'tba'} gap="md">
+          <Stack key={month ?? 'tba'} gap="lg">
             <Divider
               label={
-                <Text fw={600} size="sm" tt="uppercase" c="dimmed" px={4}>
+                <Text fw={700} size="sm" tt="uppercase" c="dimmed">
                   {heading}
                 </Text>
               }
-              labelPosition="center"
+              labelPosition="left"
             />
 
             <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
@@ -127,28 +127,13 @@ export function FestivalsTimeline({ festivals, activeYear }: IFestivalsTimelineP
                 const soon = !ongoing && isSoon(edition);
 
                 return (
-                  <Stack key={festival.id} gap={4}>
-                    {(ongoing || soon) && (
-                      <Group gap="xs">
-                        {ongoing && (
-                          <Badge size="xs" color="teal" variant="filled" radius="sm">
-                            {t('timeline.ongoing')}
-                          </Badge>
-                        )}
-                        {soon && (
-                          <Badge size="xs" color="orange" variant="filled" radius="sm">
-                            {t('timeline.soon')}
-                          </Badge>
-                        )}
-                      </Group>
-                    )}
-                    <Link
-                      href={`/festivals/${festival.slug}`}
-                      style={{ textDecoration: 'none', display: 'block', height: '100%' }}
-                    >
-                      <FestivalCard festival={festival} />
-                    </Link>
-                  </Stack>
+                  <Link
+                    key={festival.id}
+                    href={`/festivals/${festival.slug}`}
+                    style={{ textDecoration: 'none', display: 'block', height: '100%' }}
+                  >
+                    <FestivalCard festival={festival} isOngoing={ongoing} isSoon={soon} />
+                  </Link>
                 );
               })}
             </SimpleGrid>
