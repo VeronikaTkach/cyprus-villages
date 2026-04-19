@@ -25,6 +25,20 @@ test.describe('Admin login', () => {
     await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
   });
 
+  test('after login, navigate to Villages section via sidebar (requires API)', async ({ page }) => {
+    // Sign in first.
+    await page.goto('/admin/login');
+    await page.getByLabel('Email').fill('admin@cyprus-villages.dev');
+    await page.getByLabel('Password').fill('Admin1234!');
+    await page.getByRole('button', { name: 'Sign in' }).click();
+    await page.waitForURL('/admin', { timeout: 10_000 });
+
+    // Click the "Villages" nav link in the sidebar.
+    await page.getByRole('link', { name: 'Villages' }).click();
+    await expect(page).toHaveURL(/\/admin\/villages/);
+    await expect(page.getByRole('heading', { name: 'Villages' })).toBeVisible({ timeout: 10_000 });
+  });
+
   test('wrong credentials show error (requires API)', async ({ page }) => {
     await page.goto('/admin/login');
 

@@ -19,4 +19,14 @@ test.describe('Festivals', () => {
       timeout: 10_000,
     });
   });
+
+  test('navigate from list to festival detail via card click (requires API)', async ({ page }) => {
+    await page.goto('/en/festivals');
+    // Wait for the seeded card to appear, then click it.
+    await page.getByText('Omodos Wine Festival').first().click();
+    await expect(page).toHaveURL(/\/festivals\/omodos-wine-festival/);
+    await expect(page.getByRole('heading', { name: 'Omodos Wine Festival' })).toBeVisible({
+      timeout: 10_000,
+    });
+  });
 });

@@ -1,9 +1,10 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Alert, Badge, Button, Group, Text } from '@mantine/core';
-import { IconAlertCircle } from '@tabler/icons-react';
+import { IconAlertCircle, IconCheck } from '@tabler/icons-react';
 import { SectionTitle, LoadingState } from '@/shared/ui';
 import { FestivalEditionForm } from '@/features/admin-festival';
 import { LocationPointsSection } from '@/features/admin-location-point';
@@ -29,10 +30,22 @@ export function FestivalEditionEditView({ id }: IFestivalEditionEditViewProps) {
   const archiveMutation = useArchiveFestivalEdition();
   const cancelMutation = useCancelFestivalEdition();
 
+  const [savedVisible, setSavedVisible] = useState(false);
+  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (updateMutation.isSuccess) {
+      setSavedVisible(true);
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+      hideTimerRef.current = setTimeout(() => setSavedVisible(false), 2500);
+    }
+  }, [updateMutation.isSuccess, updateMutation.submittedAt]);
+
   if (isLoading) return <LoadingState />;
   if (isError || !edition) return <Text c="red">Edition not found.</Text>;
 
   function handleSubmit(values: IUpdateFestivalEditionDto) {
+    setSavedVisible(false);
     updateMutation.mutate(values);
   }
 
@@ -124,6 +137,12 @@ export function FestivalEditionEditView({ id }: IFestivalEditionEditViewProps) {
       {actionErrorMessage && (
         <Alert icon={<IconAlertCircle size={16} />} color="red" variant="light" mb="md">
           {actionErrorMessage}
+        </Alert>
+      )}
+
+      {savedVisible && (
+        <Alert icon={<IconCheck size={16} />} color="teal" variant="light" mb="md">
+          Changes saved.
         </Alert>
       )}
 
