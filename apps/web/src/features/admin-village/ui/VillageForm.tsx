@@ -1,7 +1,7 @@
 'use client';
 
 import { z } from 'zod';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Alert,
@@ -21,6 +21,7 @@ import { IconAlertCircle } from '@tabler/icons-react';
 import { LOCALE_LABELS } from '@/shared/i18n';
 import type { TLocale } from '@/shared/i18n';
 import type { ICreateVillageDto, IUpdateVillageDto } from '@/entities/village';
+import { MapPickerControl } from '@/shared/ui';
 
 // ─── Schemas ────────────────────────────────────────────────────────────────
 
@@ -105,6 +106,10 @@ interface IFormBodyProps {
   errors: ReturnType<typeof useForm<TEditValues>>['formState']['errors'];
 }
 
+interface ILocationFieldsProps extends IFormBodyProps {
+  onMapPick: (lat: number, lng: number) => void;
+}
+
 function TranslationTabs({ control }: IFormBodyProps) {
   return (
     <Tabs defaultValue="en">
@@ -161,7 +166,10 @@ function TranslationTabs({ control }: IFormBodyProps) {
   );
 }
 
-function LocationFields({ control, errors }: IFormBodyProps) {
+function LocationFields({ control, errors, onMapPick }: ILocationFieldsProps) {
+  const centerLat = useWatch({ control, name: 'centerLat' });
+  const centerLng = useWatch({ control, name: 'centerLng' });
+
   return (
     <>
       <Divider label="Location" labelPosition="left" />
@@ -239,6 +247,13 @@ function LocationFields({ control, errors }: IFormBodyProps) {
           />
         </Grid.Col>
       </Grid>
+
+      <Text size="xs" c="dimmed">Click the map to set center coordinates</Text>
+      <MapPickerControl
+        lat={typeof centerLat === 'number' ? centerLat : undefined}
+        lng={typeof centerLng === 'number' ? centerLng : undefined}
+        onPick={onMapPick}
+      />
     </>
   );
 }
@@ -249,6 +264,7 @@ function CreateForm({ onSubmit, isPending, error }: Extract<TVillageFormProps, {
   const {
     control,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<TCreateValues>({
     resolver: zodResolver(createSchema),
@@ -258,6 +274,11 @@ function CreateForm({ onSubmit, isPending, error }: Extract<TVillageFormProps, {
   const handleFormSubmit = handleSubmit((values) => {
     onSubmit(cleanStrings(values) as ICreateVillageDto);
   });
+
+  const handleMapPick = (lat: number, lng: number) => {
+    setValue('centerLat', lat);
+    setValue('centerLng', lng);
+  };
 
   return (
     <form onSubmit={handleFormSubmit}>
@@ -294,6 +315,7 @@ function CreateForm({ onSubmit, isPending, error }: Extract<TVillageFormProps, {
         <LocationFields
           control={control as unknown as IFormBodyProps['control']}
           errors={errors}
+          onMapPick={handleMapPick}
         />
 
         <Button type="submit" loading={isPending} mt="sm">
@@ -316,6 +338,7 @@ function EditForm({
   const {
     control,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<TEditValues>({
     resolver: zodResolver(editSchema),
@@ -336,6 +359,11 @@ function EditForm({
   const handleFormSubmit = handleSubmit((values) => {
     onSubmit(cleanStrings(values) as IUpdateVillageDto);
   });
+
+  const handleMapPick = (lat: number, lng: number) => {
+    setValue('centerLat', lat);
+    setValue('centerLng', lng);
+  };
 
   return (
     <form onSubmit={handleFormSubmit}>
@@ -363,7 +391,7 @@ function EditForm({
         </Title>
         <TranslationTabs control={control} errors={errors} />
 
-        <LocationFields control={control} errors={errors} />
+        <LocationFields control={control} errors={errors} onMapPick={handleMapPick} />
 
         <Button type="submit" loading={isPending} mt="sm">
           Save changes

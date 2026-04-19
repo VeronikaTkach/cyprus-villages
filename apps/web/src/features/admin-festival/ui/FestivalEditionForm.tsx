@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { z } from 'zod';
 import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,6 +20,7 @@ import {
 } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import type { ICreateFestivalEditionDto, IUpdateFestivalEditionDto } from '@/entities/festival-edition';
+import { MapPickerControl } from '@/shared/ui';
 
 // ─── Validation helpers ───────────────────────────────────────────────────────
 
@@ -107,9 +109,19 @@ function cleanStrings<T extends Record<string, unknown>>(values: T): T {
 interface IEditionBodyProps {
   control: ReturnType<typeof useForm<TEditEditionValues>>['control'];
   isDateTba: boolean;
+  onVenueMapPick: (lat: number, lng: number) => void;
+  onParkingMapPick: (lat: number, lng: number) => void;
 }
 
-function EditionBody({ control, isDateTba }: IEditionBodyProps) {
+function EditionBody({ control, isDateTba, onVenueMapPick, onParkingMapPick }: IEditionBodyProps) {
+  const [venuePickerOpen, setVenuePickerOpen] = useState(false);
+  const [parkingPickerOpen, setParkingPickerOpen] = useState(false);
+
+  const venueLat = useWatch({ control, name: 'venueLat' });
+  const venueLng = useWatch({ control, name: 'venueLng' });
+  const parkingLat = useWatch({ control, name: 'parkingLat' });
+  const parkingLng = useWatch({ control, name: 'parkingLng' });
+
   return (
     <>
       {/* ── Dates ── */}
@@ -254,6 +266,23 @@ function EditionBody({ control, isDateTba }: IEditionBodyProps) {
         </Grid.Col>
       </Grid>
 
+      <Button
+        variant="subtle"
+        size="xs"
+        onClick={() => setVenuePickerOpen((o) => !o)}
+      >
+        {venuePickerOpen ? 'Close venue map' : 'Pick venue on map'}
+      </Button>
+      {venuePickerOpen && (
+        <MapPickerControl
+          lat={typeof venueLat === 'number' ? venueLat : undefined}
+          lng={typeof venueLng === 'number' ? venueLng : undefined}
+          onPick={(lat, lng) => {
+            onVenueMapPick(lat, lng);
+          }}
+        />
+      )}
+
       {/* ── Parking ── */}
       <Divider label="Parking" labelPosition="left" />
 
@@ -310,6 +339,23 @@ function EditionBody({ control, isDateTba }: IEditionBodyProps) {
           />
         </Grid.Col>
       </Grid>
+
+      <Button
+        variant="subtle"
+        size="xs"
+        onClick={() => setParkingPickerOpen((o) => !o)}
+      >
+        {parkingPickerOpen ? 'Close parking map' : 'Pick parking on map'}
+      </Button>
+      {parkingPickerOpen && (
+        <MapPickerControl
+          lat={typeof parkingLat === 'number' ? parkingLat : undefined}
+          lng={typeof parkingLng === 'number' ? parkingLng : undefined}
+          onPick={(lat, lng) => {
+            onParkingMapPick(lat, lng);
+          }}
+        />
+      )}
 
       {/* ── Sources ── */}
       <Divider label="Sources" labelPosition="left" />
@@ -369,7 +415,7 @@ function CreateEditionForm({
   isPending,
   error,
 }: Extract<TFestivalEditionFormProps, { mode: 'create' }>) {
-  const { control, handleSubmit } = useForm<TCreateEditionValues>({
+  const { control, handleSubmit, setValue } = useForm<TCreateEditionValues>({
     resolver: zodResolver(createEditionSchema),
     defaultValues: { isDateTba: false },
   });
@@ -410,6 +456,8 @@ function CreateEditionForm({
         <EditionBody
           control={control as unknown as IEditionBodyProps['control']}
           isDateTba={isDateTba}
+          onVenueMapPick={(lat, lng) => { setValue('venueLat', lat); setValue('venueLng', lng); }}
+          onParkingMapPick={(lat, lng) => { setValue('parkingLat', lat); setValue('parkingLng', lng); }}
         />
 
         <Group justify="flex-end" mt="sm">
@@ -431,7 +479,7 @@ function EditEditionForm({
   isPending,
   error,
 }: Extract<TFestivalEditionFormProps, { mode: 'edit' }>) {
-  const { control, handleSubmit } = useForm<TEditEditionValues>({
+  const { control, handleSubmit, setValue } = useForm<TEditEditionValues>({
     resolver: zodResolver(editEditionSchema),
     defaultValues: {
       isDateTba: defaultValues.isDateTba ?? false,
@@ -479,6 +527,8 @@ function EditEditionForm({
         <EditionBody
           control={control}
           isDateTba={isDateTba}
+          onVenueMapPick={(lat, lng) => { setValue('venueLat', lat); setValue('venueLng', lng); }}
+          onParkingMapPick={(lat, lng) => { setValue('parkingLat', lat); setValue('parkingLng', lng); }}
         />
 
         <Group justify="flex-end" mt="sm">

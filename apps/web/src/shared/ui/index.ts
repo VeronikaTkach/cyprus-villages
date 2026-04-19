@@ -26,3 +26,5 @@ export { LoadingState } from './LoadingState';
 
 export { LeafletMap } from './map';
 export type { ILeafletMapProps, IMapMarker, TMapMarkerKind } from './map';
+export { MapPickerControl } from './map';
+export type { IMapPickerControlProps } from './map';

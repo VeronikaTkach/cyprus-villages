@@ -1,14 +1,14 @@
 # Cyprus Villages — Project Progress
 
-> Last updated: 2026-04-08 (Media module complete; PWA icons + installability ready; C2 complete)
+> Last updated: 2026-04-09 (D2 map coordinate picker complete; GET /map/festivals wired into frontend)
 
 ---
 
 ## Next priority
 
-1. **D2 — Map coordinate picker** — clickable map in VillageForm and FestivalEditionForm.
-2. **D4 — E2E tests (Playwright)** — cover primary public flows and at least one admin flow.
-3. **Frontend: wire `GET /map/festivals`** — add festival markers to the `/map` overview page.
+1. **D7 — Audit Log UI** — `GET /admin/audit-log` backend endpoint + frontend table.
+2. **D4 (cont.) — E2E CI integration** — wire Playwright into GitHub Actions with a full-stack environment.
+3. **Home page** — replace placeholder with real content (village/festival highlights).
 
 ---
 
@@ -230,10 +230,11 @@ Full snapshot: [`docs/audits/2026-03-27-architecture-audit.md`](audits/2026-03-2
 - [x] Frontend: `entities/media`, `features/admin-media/CoverUpload`, `httpUpload`
 - [x] Frontend: cover image on public village and festival detail pages; placeholder fallback on missing/broken image
 
-#### D2 — Map coordinate picker (Admin)
+#### D2 — Map coordinate picker (Admin) ✓ COMPLETE
 
-- [ ] Frontend: `MapPickerControl` in `shared/ui/map` — emits lat/lng on click
-- [ ] Frontend: wire into VillageForm (centerLat/Lng) and FestivalEditionForm (venue, parking)
+- [x] Frontend: `MapPickerControl` in `shared/ui/map` — dynamic-imported Leaflet picker; emits lat/lng on click; shows marker at current value; centers on existing coords or Cyprus default
+- [x] Frontend: wire into VillageForm (centerLat/Lng) — always-visible picker below coordinate inputs
+- [x] Frontend: wire into FestivalEditionForm (venue + parking) — toggle button per section ("Pick venue on map" / "Pick parking on map")
 
 #### D3 — Testing foundation (Vitest) ✓ COMPLETE
 
@@ -242,13 +243,19 @@ Full snapshot: [`docs/audits/2026-03-27-architecture-audit.md`](audits/2026-03-2
 - [x] Backend unit tests (Jest): `selectDisplayEdition` — 8 cases
 - [x] CI: lint + typecheck + tests on every push/PR
 
-#### D4 — E2E tests (Playwright)
+#### D4 — E2E tests (Playwright) — foundation only, not fully complete
 
-- [ ] Configure Playwright: Chromium + WebKit, mobile viewport 390px
-- [ ] Core public flows: home → festival list → festival detail
-- [ ] Villages: list → detail with map and cover image
-- [ ] Admin flows: create village, create festival, publish edition
-- [ ] Map smoke test
+**Foundation implemented:**
+- [x] Playwright configured: Chromium + WebKit + mobile Chrome (Pixel 5, 393px); `playwright.config.ts` in `apps/web`
+- [x] Public flows: home, festivals list + detail, villages list + detail + related festivals, map smoke test (`e2e/public/`)
+- [x] Admin flow: login page load, successful login → dashboard, wrong credentials error (`e2e/admin/login.spec.ts`)
+- [x] Mobile coverage: all tests run on the mobile-chrome project automatically
+- [x] Scripts: `pnpm test:e2e`, `pnpm test:e2e:ui`, `pnpm test:e2e:headed`
+
+**Not yet implemented:**
+- [ ] Admin CRUD E2E flows: create village, create festival, publish edition
+- [ ] CI orchestration for E2E (requires full-stack: Next.js + NestJS API + seeded DB in CI)
+- [ ] Automated full-stack setup for test environments
 
 #### D5 — PWA Phase 2 (Installability) ✓ COMPLETE
 
@@ -287,8 +294,7 @@ A fully separate phase. Reuses the entire domain model and API.
 | Issue | Location | Priority |
 |-------|----------|----------|
 | No pagination in admin list views | Villages, Festivals, LocationPoints | Medium |
-| Festival map markers not yet wired into the `/map` frontend page | `_MapView.tsx` | Medium |
-| Coordinates entered as plain number inputs | FestivalEditionForm, VillageForm | Low |
+| Cover image dimensions (width/height) not extracted on upload | `MediaService.uploadCover` | Low |
 | Cover image dimensions (width/height) not extracted on upload | `MediaService.uploadCover` | Low |
 | Admin UI does not support creating dual-ownership LocationPoints | `LocationPointForm` | Low |
 | Public map points filtered client-side on detail pages | `_VillageDetailView`, `_FestivalDetailView` | Low |
