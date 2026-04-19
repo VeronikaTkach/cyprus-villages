@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 import { Badge, Divider, Group, Image, Stack, Text, Title } from '@mantine/core';
-import { IconCalendar, IconMapPin } from '@tabler/icons-react';
+import { IconCalendar, IconMapPin, IconParking } from '@tabler/icons-react';
 import { LoadingState, LeafletMap } from '@/shared/ui';
 import type { IMapMarker } from '@/shared/ui';
 import {
@@ -71,27 +71,25 @@ export function FestivalDetailView({ slug }: IFestivalDetailViewProps) {
     markers.length > 0 ? [markers[0].lat, markers[0].lng] : undefined;
 
   return (
-    <Stack gap="lg">
-      <div>
-        {festival.titleEl && (
-          <Title order={1} mb={4}>
-            {festival.titleEl}
-          </Title>
-        )}
+    <Stack gap="xl">
+      {/* Title block — tight internal spacing, no orphan div */}
+      <Stack gap={4}>
+        {festival.titleEl && <Title order={1}>{festival.titleEl}</Title>}
         {translation?.title && translation.title !== festival.titleEl && (
           <Text size="xl" c="dimmed">
             {translation.title}
           </Text>
         )}
-      </div>
+      </Stack>
 
+      {/* Badges — status badge hidden for published festivals (admin concept, not user-facing) */}
       <Group gap="sm">
         {festival.category && (
           <Badge color={CATEGORY_COLORS[festival.category]} variant="light">
             {CATEGORY_LABELS[festival.category]}
           </Badge>
         )}
-        {latestEdition && (
+        {latestEdition && latestEdition.status !== 'PUBLISHED' && (
           <Badge
             color={EDITION_STATUS_COLORS[latestEdition.status]}
             variant="outline"
@@ -102,31 +100,7 @@ export function FestivalDetailView({ slug }: IFestivalDetailViewProps) {
         )}
       </Group>
 
-      {latestEdition && (
-        <Group gap="xs">
-          <IconCalendar size={16} color="var(--mantine-color-teal-6)" />
-          <Text c="dimmed">
-            {latestEdition.isDateTba
-              ? 'Dates TBA'
-              : formatDateRange(latestEdition.startDate, latestEdition.endDate)}
-          </Text>
-        </Group>
-      )}
-
-      {latestEdition?.venueName && (
-        <Group gap="xs">
-          <IconMapPin size={16} color="var(--mantine-color-blue-6)" />
-          <Text c="dimmed">{latestEdition.venueName}</Text>
-        </Group>
-      )}
-
-      {latestEdition?.parkingName && (
-        <Group gap="xs">
-          <IconMapPin size={16} color="var(--mantine-color-orange-6)" />
-          <Text c="dimmed">{latestEdition.parkingName}</Text>
-        </Group>
-      )}
-
+      {/* Cover image — above event details so the festival is established visually first */}
       <Image
         src={festival.media?.[0]?.url ?? '/images/placeholder.svg'}
         alt={festival.media?.[0]?.alt ?? (festival.titleEl ?? translation?.title ?? festival.slug)}
@@ -137,6 +111,34 @@ export function FestivalDetailView({ slug }: IFestivalDetailViewProps) {
           (e.currentTarget as HTMLImageElement).src = '/images/placeholder.svg';
         }}
       />
+
+      {/* Event details — date, venue, parking grouped as one scannable block */}
+      {latestEdition && (
+        <Stack gap="xs">
+          <Group gap="xs">
+            <IconCalendar size={16} color="var(--mantine-color-teal-6)" />
+            <Text size="sm" fw={500}>
+              {latestEdition.isDateTba
+                ? 'Dates TBA'
+                : formatDateRange(latestEdition.startDate, latestEdition.endDate)}
+            </Text>
+          </Group>
+
+          {latestEdition.venueName && (
+            <Group gap="xs">
+              <IconMapPin size={16} color="var(--mantine-color-blue-6)" />
+              <Text size="sm">{latestEdition.venueName}</Text>
+            </Group>
+          )}
+
+          {latestEdition.parkingName && (
+            <Group gap="xs">
+              <IconParking size={16} color="var(--mantine-color-orange-6)" />
+              <Text size="sm">{latestEdition.parkingName}</Text>
+            </Group>
+          )}
+        </Stack>
+      )}
 
       {translation?.description && (
         <>
