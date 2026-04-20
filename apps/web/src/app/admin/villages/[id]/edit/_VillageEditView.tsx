@@ -1,9 +1,10 @@
 'use client';
 
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Alert, Button, Group, Text } from '@mantine/core';
-import { IconAlertCircle } from '@tabler/icons-react';
-import { Divider } from '@mantine/core';
+import Link from 'next/link';
+import { Alert, Button, Divider, Group, Text } from '@mantine/core';
+import { IconAlertCircle, IconCheck } from '@tabler/icons-react';
 import { SectionTitle, LoadingState } from '@/shared/ui';
 import { VillageForm } from '@/features/admin-village';
 import { LocationPointsSection } from '@/features/admin-location-point';
@@ -21,6 +22,15 @@ export function VillageEditView({ id }: IVillageEditViewProps) {
   const updateMutation = useUpdateVillage(id);
   const archiveMutation = useArchiveVillage();
 
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function showSuccess(message: string) {
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    setSuccessMessage(message);
+    hideTimerRef.current = setTimeout(() => setSuccessMessage(null), 2500);
+  }
+
   if (isLoading) return <LoadingState />;
   if (isError || !village) return <Text c="red">Village not found.</Text>;
 
@@ -29,7 +39,10 @@ export function VillageEditView({ id }: IVillageEditViewProps) {
   }
 
   function handleSubmit(values: IUpdateVillageDto) {
-    updateMutation.mutate(values);
+    setSuccessMessage(null);
+    updateMutation.mutate(values, {
+      onSuccess: () => showSuccess('Changes saved.'),
+    });
   }
 
   function handleArchive() {
@@ -55,22 +68,38 @@ export function VillageEditView({ id }: IVillageEditViewProps) {
     <>
       <Group justify="space-between" align="flex-start" mb="lg">
         <SectionTitle title={`Edit: ${getT('en')?.name ?? village.slug}`} />
-        {village.isActive && (
+        <Group gap="xs">
           <Button
-            variant="outline"
-            color="red"
+            component={Link}
+            href="/admin/villages"
+            variant="subtle"
             size="sm"
-            loading={archiveMutation.isPending}
-            onClick={handleArchive}
           >
-            Archive
+            ← Villages
           </Button>
-        )}
+          {village.isActive && (
+            <Button
+              variant="outline"
+              color="red"
+              size="sm"
+              loading={archiveMutation.isPending}
+              onClick={handleArchive}
+            >
+              Archive
+            </Button>
+          )}
+        </Group>
       </Group>
 
       {archiveError && (
         <Alert icon={<IconAlertCircle size={16} />} color="red" variant="light" mb="md">
           {archiveError}
+        </Alert>
+      )}
+
+      {successMessage && (
+        <Alert icon={<IconCheck size={16} />} color="teal" variant="light" mb="md">
+          {successMessage}
         </Alert>
       )}
 
