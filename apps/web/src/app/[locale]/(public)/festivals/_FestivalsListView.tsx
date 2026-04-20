@@ -94,7 +94,10 @@ export function FestivalsListView() {
       {isError && <Text c="red">{t('loadError')}</Text>}
 
       {!isLoading && !isError && festivals !== undefined && festivals.length === 0 && (
-        <EmptyState description={hasFilters ? t('filters.noResults') : t('empty')} />
+        <EmptyState
+          title={hasFilters ? t('filters.noResultsTitle') : undefined}
+          description={hasFilters ? t('filters.noResultsHint') : t('empty')}
+        />
       )}
 
       {!isLoading && !isError && festivals && festivals.length > 0 && (

@@ -16,6 +16,7 @@
     "title": "Festivals",
     "description": "Festival calendar and events",
     "empty": "No festivals have been added yet.",
+    "emptyInVillage": "No festivals are listed for this village yet.",
     "notFound": "Festival not found.",
     "loadError": "Failed to load festivals.",
     "filters": {
@@ -24,7 +25,9 @@
       "year": "Year",
       "month": "Month",
       "clearFilters": "Clear filters",
-      "noResults": "No festivals match the selected filters."
+      "noResults": "No festivals match the selected filters.",
+      "noResultsTitle": "No festivals found",
+      "noResultsHint": "Try adjusting or clearing the filters."
     },
     "timeline": {
       "tba": "Dates TBA",

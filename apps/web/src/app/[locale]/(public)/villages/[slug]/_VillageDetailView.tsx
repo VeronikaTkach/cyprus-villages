@@ -111,7 +111,7 @@ export function VillageDetailView({ slug }: IVillageDetailViewProps) {
             ))}
           </SimpleGrid>
         ) : (
-          <EmptyState title={tFestivals('empty')} />
+          <EmptyState description={tFestivals('emptyInVillage')} />
         )}
       </div>
     </Stack>
