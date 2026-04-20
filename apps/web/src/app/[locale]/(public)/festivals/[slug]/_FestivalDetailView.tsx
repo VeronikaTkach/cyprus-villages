@@ -100,19 +100,7 @@ export function FestivalDetailView({ slug }: IFestivalDetailViewProps) {
         )}
       </Group>
 
-      {/* Cover image — above event details so the festival is established visually first */}
-      <Image
-        src={festival.media?.[0]?.url ?? '/images/placeholder.svg'}
-        alt={festival.media?.[0]?.alt ?? (festival.titleEl ?? translation?.title ?? festival.slug)}
-        radius="md"
-        mah={360}
-        fit="cover"
-        onError={(e) => {
-          (e.currentTarget as HTMLImageElement).src = '/images/placeholder.svg';
-        }}
-      />
-
-      {/* Event details — date, venue, parking grouped as one scannable block */}
+      {/* Event details — before image so date/location are above the fold on mobile */}
       {latestEdition && (
         <Stack gap="xs">
           <Group gap="xs">
@@ -139,6 +127,18 @@ export function FestivalDetailView({ slug }: IFestivalDetailViewProps) {
           )}
         </Stack>
       )}
+
+      {/* Cover image — between key facts and description */}
+      <Image
+        src={festival.media?.[0]?.url ?? '/images/placeholder.svg'}
+        alt={festival.media?.[0]?.alt ?? (festival.titleEl ?? translation?.title ?? festival.slug)}
+        radius="md"
+        mah={360}
+        fit="cover"
+        onError={(e) => {
+          (e.currentTarget as HTMLImageElement).src = '/images/placeholder.svg';
+        }}
+      />
 
       {translation?.description && (
         <>
