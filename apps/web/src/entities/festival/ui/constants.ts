@@ -45,6 +45,16 @@ export function formatDate(iso: string): string {
   });
 }
 
+/**
+ * Format a 1-based month number as a long month name.
+ * Used for displaying typicalMonth in the approximate-timing UI.
+ */
+export function formatTypicalMonth(month: number, locale = 'en'): string {
+  return new Intl.DateTimeFormat(locale, { month: 'long' }).format(
+    new Date(2024, month - 1, 1),
+  );
+}
+
 /** Format a date range, collapsing same-year ranges. */
 export function formatDateRange(start: string | null, end: string | null): string {
   if (!start && !end) return '';

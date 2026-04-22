@@ -103,6 +103,7 @@ export function FestivalEditView({ id }: IFestivalEditViewProps) {
           descriptionRu: getFestivalTranslation(festival, 'ru')?.description ?? undefined,
           descriptionEl: getFestivalTranslation(festival, 'el')?.description ?? undefined,
           category: festival.category ?? undefined,
+          typicalMonth: festival.typicalMonth ?? undefined,
         }}
         onSubmit={handleSubmit}
         isPending={updateMutation.isPending}

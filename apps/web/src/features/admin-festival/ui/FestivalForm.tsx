@@ -30,6 +30,11 @@ const CATEGORY_OPTIONS = (
   Object.keys(CATEGORY_LABELS) as TFestivalCategory[]
 ).map((v) => ({ value: v, label: CATEGORY_LABELS[v] }));
 
+const MONTH_OPTIONS = Array.from({ length: 12 }, (_, i) => ({
+  value: String(i + 1),
+  label: new Intl.DateTimeFormat('en', { month: 'long' }).format(new Date(2024, i, 1)),
+}));
+
 // ─── Schemas ─────────────────────────────────────────────────────────────────
 
 const translationFields = {
@@ -39,6 +44,10 @@ const translationFields = {
   descriptionEn: z.string().optional(),
   descriptionRu: z.string().optional(),
   descriptionEl: z.string().optional(),
+};
+
+const typicalMonthField = {
+  typicalMonth: z.number().int().min(1).max(12).nullable().optional(),
 };
 
 const createSchema = z.object({
@@ -51,6 +60,7 @@ const createSchema = z.object({
   category: z
     .enum(['WINE', 'FOOD', 'CULTURAL', 'RELIGIOUS', 'MUSIC', 'ARTS', 'SPORT', 'OTHER'])
     .optional(),
+  ...typicalMonthField,
   ...translationFields,
 });
 
@@ -58,6 +68,7 @@ const editSchema = z.object({
   category: z
     .enum(['WINE', 'FOOD', 'CULTURAL', 'RELIGIOUS', 'MUSIC', 'ARTS', 'SPORT', 'OTHER'])
     .optional(),
+  ...typicalMonthField,
   ...translationFields,
 });
 
@@ -246,6 +257,22 @@ function CreateForm({
           )}
         />
 
+        <Controller
+          name="typicalMonth"
+          control={control}
+          render={({ field, fieldState }) => (
+            <Select
+              label="Typical month"
+              description="Approximate month this festival usually occurs. Shown publicly only when no confirmed edition date is available."
+              data={MONTH_OPTIONS}
+              clearable
+              error={fieldState.error?.message}
+              value={field.value != null ? String(field.value) : null}
+              onChange={(val) => field.onChange(val ? Number(val) : null)}
+            />
+          )}
+        />
+
         <Title order={5} c="dimmed">
           Translations
         </Title>
@@ -284,6 +311,7 @@ function EditForm({
       descriptionRu: defaultValues.descriptionRu ?? '',
       descriptionEl: defaultValues.descriptionEl ?? '',
       category: defaultValues.category,
+      typicalMonth: defaultValues.typicalMonth ?? undefined,
     },
   });
 
@@ -323,6 +351,22 @@ function EditForm({
               error={fieldState.error?.message}
               value={field.value ?? null}
               onChange={(val) => field.onChange(val ?? undefined)}
+            />
+          )}
+        />
+
+        <Controller
+          name="typicalMonth"
+          control={control}
+          render={({ field, fieldState }) => (
+            <Select
+              label="Typical month"
+              description="Approximate month this festival usually occurs. Shown publicly only when no confirmed edition date is available."
+              data={MONTH_OPTIONS}
+              clearable
+              error={fieldState.error?.message}
+              value={field.value != null ? String(field.value) : null}
+              onChange={(val) => field.onChange(val ? Number(val) : null)}
             />
           )}
         />

@@ -109,6 +109,13 @@ export class PublicFestivalListItemDto {
   @ApiProperty({ enum: FestivalCategory })
   category!: FestivalCategory;
 
+  @ApiPropertyOptional({
+    example: 9,
+    nullable: true,
+    description: 'Usual calendar month (1–12). Approximate; does not replace edition dates.',
+  })
+  typicalMonth!: number | null;
+
   @ApiProperty({ example: true })
   isActive!: boolean;
 
@@ -152,6 +159,13 @@ export class FestivalResponseDto {
 
   @ApiProperty({ enum: FestivalCategory })
   category!: FestivalCategory;
+
+  @ApiPropertyOptional({
+    example: 9,
+    nullable: true,
+    description: 'Usual calendar month (1–12). Approximate; does not replace edition dates.',
+  })
+  typicalMonth!: number | null;
 
   @ApiProperty({ example: true })
   isActive!: boolean;

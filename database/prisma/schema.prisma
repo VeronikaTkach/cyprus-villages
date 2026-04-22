@@ -141,6 +141,11 @@ model Festival {
 
   category  FestivalCategory @default(OTHER)
 
+  // Approximate recurring timing — the usual calendar month (1–12) this festival
+  // tends to occur. Optional helper for public display when no confirmed edition
+  // dates are available. Does NOT replace FestivalEdition dates.
+  typicalMonth Int?
+
   // Visibility / lifecycle
   isActive  Boolean  @default(true)
 

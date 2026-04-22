@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsString,
   Matches,
+  Max,
   MaxLength,
   Min,
   MinLength,
@@ -74,4 +75,18 @@ export class CreateFestivalDto {
   @IsOptional()
   @IsEnum(FestivalCategory)
   category?: FestivalCategory;
+
+  @ApiPropertyOptional({
+    example: 9,
+    description:
+      'Usual calendar month (1–12) when this festival tends to occur. ' +
+      'Approximate only — does not replace FestivalEdition dates.',
+    minimum: 1,
+    maximum: 12,
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(12)
+  typicalMonth?: number | null;
 }

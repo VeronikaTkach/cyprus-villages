@@ -17,6 +17,7 @@ const festivalSelect = {
   villageId: true,
   titleEl: true,
   category: true,
+  typicalMonth: true,
   isActive: true,
   createdAt: true,
   updatedAt: true,

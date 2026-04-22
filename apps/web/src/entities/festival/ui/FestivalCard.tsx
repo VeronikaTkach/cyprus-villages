@@ -9,6 +9,7 @@ import {
   CATEGORY_LABELS,
   EDITION_STATUS_COLORS,
   formatDateRange,
+  formatTypicalMonth,
 } from './constants';
 
 interface IFestivalCardProps {
@@ -70,14 +71,10 @@ export function FestivalCard({ festival, isOngoing, isSoon }: IFestivalCardProps
           </Badge>
         </Group>
 
-        {/* Edition dates — full contrast so they stand out from description */}
-        {edition && (
+        {/* Timing — priority: confirmed date > typicalMonth fallback > "Dates TBA" */}
+        {edition?.startDate && !edition.isDateTba ? (
           <Text size="sm" fw={500} mt="xs">
-            {edition.isDateTba
-              ? 'Dates TBA'
-              : edition.startDate
-                ? formatDateRange(edition.startDate, edition.endDate)
-                : null}
+            {formatDateRange(edition.startDate, edition.endDate)}
             {edition.status !== 'PUBLISHED' && (
               <Badge
                 ml={6}
@@ -89,7 +86,25 @@ export function FestivalCard({ festival, isOngoing, isSoon }: IFestivalCardProps
               </Badge>
             )}
           </Text>
-        )}
+        ) : festival.typicalMonth ? (
+          <Text size="sm" c="dimmed" mt="xs">
+            Usually in {formatTypicalMonth(festival.typicalMonth)}
+          </Text>
+        ) : edition ? (
+          <Text size="sm" fw={500} mt="xs">
+            Dates TBA
+            {edition.status !== 'PUBLISHED' && (
+              <Badge
+                ml={6}
+                variant="dot"
+                color={EDITION_STATUS_COLORS[edition.status]}
+                size="xs"
+              >
+                {edition.status}
+              </Badge>
+            )}
+          </Text>
+        ) : null}
 
         {/* Description */}
         {translation?.description && (

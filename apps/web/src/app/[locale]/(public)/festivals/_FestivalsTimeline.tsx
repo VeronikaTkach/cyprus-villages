@@ -59,7 +59,7 @@ function groupByMonth(festivals: IFestival[]): IMonthGroup[] {
   const tba: IFestival[] = [];
 
   for (const festival of festivals) {
-    const month = getEditionMonth(getDisplayEdition(festival));
+    const month = getEditionMonth(getDisplayEdition(festival)) ?? festival.typicalMonth ?? null;
     if (month === null) {
       tba.push(festival);
     } else {

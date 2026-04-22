@@ -551,6 +551,18 @@ This is an intentional MVP1 simplification:
 
 If cross-timezone support or calendar integration is required in the future, a `timestamptz` field should be added. The string fields can remain for display convenience.
 
+### Scraper ingestion — draft-first, review-before-publish
+
+When a future scraper imports festival data it must use the existing admin API with no special privileges. The key rule: **the importer never publishes**. All imported records start in the normal editorial workflow and require a human action to become public.
+
+Concrete behavior:
+- A `FestivalEdition` created by import always has `status = DRAFT`.
+- If a matching `Festival` does not yet exist, it is created with `isActive = false`; it must be explicitly activated by an editor before publishing the edition.
+- `sourceUrl` must be set on every imported edition (it is the provenance signal). `sourceNote` should capture the scraper identity and run context. `lastVerifiedAt` is set to the import timestamp and updated again when an editor saves manual changes.
+- Review is done via the existing admin edition edit page — no separate review screen or staging table is needed.
+
+Non-goals for this flow: auto-publish, staging tables, multi-step moderation, or a dedicated importer role. `DRAFT` status is the staging area; the publish guard already exists.
+
 ---
 
 ## Localization strategy

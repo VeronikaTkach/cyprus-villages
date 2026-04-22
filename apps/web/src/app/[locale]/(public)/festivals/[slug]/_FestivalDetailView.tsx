@@ -14,6 +14,7 @@ import {
   EDITION_STATUS_LABELS,
   EDITION_STATUS_COLORS,
   formatDateRange,
+  formatTypicalMonth,
 } from '@/entities/festival';
 import { usePublicMapPoints, locationPointTypeToMarkerKind } from '@/entities/location-point';
 
@@ -100,26 +101,38 @@ export function FestivalDetailView({ slug }: IFestivalDetailViewProps) {
         )}
       </Group>
 
-      {/* Event details — before image so date/location are above the fold on mobile */}
-      {latestEdition && (
+      {/* Timing + venue — priority: confirmed date > typicalMonth fallback > "Dates TBA" */}
+      {(latestEdition || festival.typicalMonth) && (
         <Stack gap="xs">
-          <Group gap="xs">
-            <IconCalendar size={16} color="var(--mantine-color-teal-6)" />
-            <Text size="sm" fw={500}>
-              {latestEdition.isDateTba
-                ? 'Dates TBA'
-                : formatDateRange(latestEdition.startDate, latestEdition.endDate)}
-            </Text>
-          </Group>
+          {latestEdition?.startDate && !latestEdition.isDateTba ? (
+            <Group gap="xs">
+              <IconCalendar size={16} color="var(--mantine-color-teal-6)" />
+              <Text size="sm" fw={500}>
+                {formatDateRange(latestEdition.startDate, latestEdition.endDate)}
+              </Text>
+            </Group>
+          ) : festival.typicalMonth ? (
+            <Group gap="xs">
+              <IconCalendar size={16} color="var(--mantine-color-teal-6)" />
+              <Text size="sm" fw={500} c="dimmed">
+                Usually in {formatTypicalMonth(festival.typicalMonth)}
+              </Text>
+            </Group>
+          ) : (
+            <Group gap="xs">
+              <IconCalendar size={16} color="var(--mantine-color-teal-6)" />
+              <Text size="sm" fw={500}>Dates TBA</Text>
+            </Group>
+          )}
 
-          {latestEdition.venueName && (
+          {latestEdition?.venueName && (
             <Group gap="xs">
               <IconMapPin size={16} color="var(--mantine-color-blue-6)" />
               <Text size="sm">{latestEdition.venueName}</Text>
             </Group>
           )}
 
-          {latestEdition.parkingName && (
+          {latestEdition?.parkingName && (
             <Group gap="xs">
               <IconParking size={16} color="var(--mantine-color-orange-6)" />
               <Text size="sm">{latestEdition.parkingName}</Text>

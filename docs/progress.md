@@ -1,6 +1,6 @@
 # Cyprus Villages — Project Progress
 
-> Last updated: 2026-04-09 (D2 map coordinate picker complete; GET /map/festivals wired into frontend)
+> Last updated: 2026-04-19 (D4 Playwright foundation complete; FestivalEdition admin workflow polish: success feedback, create-view context)
 
 ---
 
@@ -114,7 +114,7 @@ Full snapshot: [`docs/audits/2026-03-27-architecture-audit.md`](audits/2026-03-2
 - `shared/api/http-client.ts` — `httpGet`, `httpPost`, `httpPatch` (fetch + credentials: include, 401 redirect); `httpUpload` (multipart POST, no Content-Type override)
 - `shared/lib/auth` — Zustand persist store for `isAuthenticated: boolean` flag (`cv-auth-ui` localStorage key); no token stored in browser
 - `shared/ui` — `Button`, `Input`, `Select`, `Textarea`, `Card`, `Modal`, `Drawer`, `PageContainer`, `SectionTitle`, `EmptyState`, `LoadingState`
-- `shared/ui/map` — `LeafletMap` (dynamic ssr:false wrapper), `_LeafletMapInner` (MapContainer + TileLayer OSM + DivIcon markers by kind), types `IMapMarker` / `TMapMarkerKind`
+- `shared/ui/map` — `LeafletMap` (dynamic ssr:false wrapper), `_LeafletMapInner` (MapContainer + TileLayer OSM + DivIcon markers by kind), types `IMapMarker` / `TMapMarkerKind`; `MapPickerControl` (dynamic ssr:false picker — click-to-place marker, emits lat/lng via `onPick`)
 - `shared/hooks`, `shared/config/navigation`, `shared/i18n`
 
 #### Entities
@@ -162,7 +162,7 @@ Full snapshot: [`docs/audits/2026-03-27-architecture-audit.md`](audits/2026-03-2
 | `/admin/festivals/new` | Create festival |
 | `/admin/festivals/[id]/edit` | Edit + Archive + CoverUpload + edition list |
 | `/admin/festivals/[id]/editions/new` | Create edition |
-| `/admin/festival-editions/[id]/edit` | Edit + Publish / Cancel / Archive |
+| `/admin/festival-editions/[id]/edit` | Edit + Publish / Cancel / Archive; inline success feedback on Save, Publish, Cancel |
 | `/admin/login` | Login form, JWT auth, redirects to `/admin` on success |
 
 #### PWA icons
@@ -248,7 +248,8 @@ Full snapshot: [`docs/audits/2026-03-27-architecture-audit.md`](audits/2026-03-2
 **Foundation implemented:**
 - [x] Playwright configured: Chromium + WebKit + mobile Chrome (Pixel 5, 393px); `playwright.config.ts` in `apps/web`
 - [x] Public flows: home, festivals list + detail, villages list + detail + related festivals, map smoke test (`e2e/public/`)
-- [x] Admin flow: login page load, successful login → dashboard, wrong credentials error (`e2e/admin/login.spec.ts`)
+- [x] Admin flow: login page load, successful login → dashboard, wrong credentials error, post-login sidebar navigation to Villages (`e2e/admin/login.spec.ts`)
+- [x] Navigation coverage: list → card click → detail verified for both villages and festivals
 - [x] Mobile coverage: all tests run on the mobile-chrome project automatically
 - [x] Scripts: `pnpm test:e2e`, `pnpm test:e2e:ui`, `pnpm test:e2e:headed`
 
@@ -294,7 +295,6 @@ A fully separate phase. Reuses the entire domain model and API.
 | Issue | Location | Priority |
 |-------|----------|----------|
 | No pagination in admin list views | Villages, Festivals, LocationPoints | Medium |
-| Cover image dimensions (width/height) not extracted on upload | `MediaService.uploadCover` | Low |
 | Cover image dimensions (width/height) not extracted on upload | `MediaService.uploadCover` | Low |
 | Admin UI does not support creating dual-ownership LocationPoints | `LocationPointForm` | Low |
 | Public map points filtered client-side on detail pages | `_VillageDetailView`, `_FestivalDetailView` | Low |

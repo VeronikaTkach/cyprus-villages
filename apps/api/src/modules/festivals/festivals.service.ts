@@ -134,6 +134,7 @@ export class FestivalsService {
       village: { connect: { id: dto.villageId } },
       titleEl: dto.titleEl ?? null,
       ...(dto.category !== undefined && { category: dto.category }),
+      ...(dto.typicalMonth !== undefined && { typicalMonth: dto.typicalMonth }),
       translations: {
         create: this.buildTranslationCreates(dto),
       },
@@ -152,6 +153,7 @@ export class FestivalsService {
     const festival = await this.festivalsRepository.update(id, {
       titleEl: dto.titleEl,
       category: dto.category,
+      ...(dto.typicalMonth !== undefined && { typicalMonth: dto.typicalMonth }),
       ...(upserts.length > 0 && { translations: { upsert: upserts } }),
     });
 

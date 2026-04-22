@@ -57,6 +57,12 @@ export interface IFestival {
   /** Greek title — always displayed prominently above the localised title */
   titleEl: string | null;
   category: TFestivalCategory;
+  /**
+   * Usual calendar month (1–12) this festival tends to occur.
+   * Approximate only — does not replace FestivalEdition dates.
+   * Shown publicly only when no confirmed edition date is available.
+   */
+  typicalMonth: number | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -88,6 +94,7 @@ export interface ICreateFestivalDto {
   descriptionRu?: string;
   descriptionEl?: string;
   category?: TFestivalCategory;
+  typicalMonth?: number | null;
 }
 
 export type IUpdateFestivalDto = Partial<Omit<ICreateFestivalDto, 'slug' | 'villageId'>>;

@@ -6,4 +6,5 @@ export {
   EDITION_STATUS_COLORS,
   formatDate,
   formatDateRange,
+  formatTypicalMonth,
 } from './constants';

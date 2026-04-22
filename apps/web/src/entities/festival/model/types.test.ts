@@ -37,6 +37,7 @@ function makeFestival(
     villageId: 1,
     titleEl: 'Φεστιβάλ',
     category: 'WINE',
+    typicalMonth: null,
     isActive: true,
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-01T00:00:00Z',
