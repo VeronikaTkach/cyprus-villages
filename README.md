@@ -83,17 +83,34 @@ docs/
 - pnpm 9+
 - Docker (for local PostgreSQL)
 
-### Install dependencies
+### First-time setup
+
+**1. Install dependencies**
 ```bash
 pnpm install
 ```
 
-### Start local database
+**2. Start local database**
 ```bash
 docker compose -f infra/compose/docker-compose.dev.yml up -d
 ```
 
-### Run in development
+**3. Generate Prisma client**
+```bash
+pnpm db:generate
+```
+
+**4. Apply migrations**
+```bash
+pnpm db:migrate
+```
+
+**5. Seed the database** *(optional)*
+```bash
+pnpm db:seed
+```
+
+**6. Start dev servers**
 ```bash
 pnpm dev
 ```
@@ -101,6 +118,22 @@ pnpm dev
 This starts both `apps/web` on `http://localhost:3000` and `apps/api` on `http://localhost:3001`.
 
 API docs available at `http://localhost:3001/api/docs`.
+
+### Subsequent runs
+
+```bash
+docker compose -f infra/compose/docker-compose.dev.yml up -d   # if the DB container is stopped
+pnpm dev
+```
+
+### Useful database commands
+
+| Command | Description |
+|---|---|
+| `pnpm db:generate` | Regenerate Prisma client after schema changes |
+| `pnpm db:migrate` | Apply new migrations |
+| `pnpm db:seed` | Re-seed the database with sample data |
+| `pnpm db:studio` | Open Prisma Studio (database GUI) |
 
 ---
 
