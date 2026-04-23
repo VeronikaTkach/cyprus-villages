@@ -59,11 +59,19 @@ export function MapView() {
   }
 
   return (
-    <LeafletMap
-      markers={markers}
-      center={CYPRUS_CENTER}
-      zoom={9}
-      height="calc(100vh - 180px)"
-    />
+    <div
+      style={{
+        border: '1px solid var(--cv-line)',
+        borderRadius: 'var(--cv-radius-lg)',
+        overflow: 'hidden',
+      }}
+    >
+      <LeafletMap
+        markers={markers}
+        center={CYPRUS_CENTER}
+        zoom={9}
+        height="clamp(400px, 65vh, 700px)"
+      />
+    </div>
   );
 }

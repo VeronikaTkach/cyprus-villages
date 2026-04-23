@@ -1,8 +1,9 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { Badge, Divider, Group, Image, Stack, Text, Title } from '@mantine/core';
+import { Image, Text } from '@mantine/core';
 import { IconCalendar, IconMapPin, IconParking } from '@tabler/icons-react';
+import { Link } from '@/i18n/navigation';
 import { LoadingState, LeafletMap } from '@/shared/ui';
 import type { IMapMarker } from '@/shared/ui';
 import {
@@ -10,17 +11,31 @@ import {
   getFestivalTranslation,
   getLatestEdition,
   CATEGORY_LABELS,
-  CATEGORY_COLORS,
   EDITION_STATUS_LABELS,
   EDITION_STATUS_COLORS,
   formatDateRange,
   formatTypicalMonth,
 } from '@/entities/festival';
+import type { IFestivalEditionBrief } from '@/entities/festival';
 import { usePublicMapPoints, locationPointTypeToMarkerKind } from '@/entities/location-point';
 
 interface IFestivalDetailViewProps {
   slug: string;
 }
+
+// ── Edition timing helpers (presentation only, no logic change) ────────────
+
+function editionDateLabel(edition: IFestivalEditionBrief): {
+  text: string;
+  isApprox: boolean;
+} {
+  if (edition.startDate && !edition.isDateTba) {
+    return { text: formatDateRange(edition.startDate, edition.endDate), isApprox: false };
+  }
+  return { text: 'Date TBA', isApprox: true };
+}
+
+// ── Component ─────────────────────────────────────────────────────────────
 
 export function FestivalDetailView({ slug }: IFestivalDetailViewProps) {
   const locale = useLocale();
@@ -71,108 +86,269 @@ export function FestivalDetailView({ slug }: IFestivalDetailViewProps) {
   const mapCenter: [number, number] | undefined =
     markers.length > 0 ? [markers[0].lat, markers[0].lng] : undefined;
 
+  const displayTitle = festival.titleEl ?? translation?.title ?? festival.slug;
+
+  // Timing for the info strip — priority: confirmed date > typicalMonth > TBA
+  const timingConfirmed =
+    latestEdition?.startDate && !latestEdition.isDateTba
+      ? formatDateRange(latestEdition.startDate, latestEdition.endDate)
+      : null;
+  const timingApprox = !timingConfirmed && festival.typicalMonth
+    ? `Usually in ${formatTypicalMonth(festival.typicalMonth)}`
+    : null;
+  const timingTba = !timingConfirmed && !timingApprox;
+
   return (
-    <Stack gap="xl">
-      {/* Title block — tight internal spacing, no orphan div */}
-      <Stack gap={4}>
-        {festival.titleEl && <Title order={1}>{festival.titleEl}</Title>}
-        {translation?.title && translation.title !== festival.titleEl && (
-          <Text size="xl" c="dimmed">
-            {translation.title}
-          </Text>
-        )}
-      </Stack>
+    <div>
+      {/* ── Breadcrumb ──────────────────────────────────────────────────── */}
+      <div style={{ marginBottom: 20 }}>
+        <Link
+          href="/festivals"
+          className="cv-mono"
+          style={{ color: 'var(--cv-ink-3)', textDecoration: 'none' }}
+        >
+          {t('title')}
+        </Link>
+        <span className="cv-mono" style={{ color: 'var(--cv-ink-4)', margin: '0 8px' }}>
+          ›
+        </span>
+        <span className="cv-mono" style={{ color: 'var(--cv-ink-2)' }}>
+          {displayTitle}
+        </span>
+      </div>
 
-      {/* Badges — status badge hidden for published festivals (admin concept, not user-facing) */}
-      <Group gap="sm">
-        {festival.category && (
-          <Badge color={CATEGORY_COLORS[festival.category]} variant="light">
+      {/* ── Hero block ──────────────────────────────────────────────────── */}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16,
+          paddingBottom: 28,
+          borderBottom: '1px solid var(--cv-line)',
+          marginBottom: 32,
+        }}
+      >
+        {/* Category chip */}
+        <div>
+          <span className={`cv-chip cv-chip--${festival.category.toLowerCase()}`}>
             {CATEGORY_LABELS[festival.category]}
-          </Badge>
-        )}
-        {latestEdition && latestEdition.status !== 'PUBLISHED' && (
-          <Badge
-            color={EDITION_STATUS_COLORS[latestEdition.status]}
-            variant="outline"
-            size="sm"
+          </span>
+        </div>
+
+        {/* Greek title — primary identity */}
+        {festival.titleEl && (
+          <h1
+            style={{
+              fontFamily: 'var(--cv-font-display)',
+              fontSize: 'clamp(1.8rem, 5vw, var(--cv-text-3xl))',
+              fontWeight: 500,
+              letterSpacing: '-0.02em',
+              lineHeight: 1.1,
+              color: 'var(--cv-ink)',
+              margin: 0,
+            }}
           >
-            {EDITION_STATUS_LABELS[latestEdition.status]}
-          </Badge>
+            {festival.titleEl}
+          </h1>
         )}
-      </Group>
 
-      {/* Timing + venue — priority: confirmed date > typicalMonth fallback > "Dates TBA" */}
+        {/* Locale title — softer, italic, only when different */}
+        {translation?.title && translation.title !== festival.titleEl && (
+          <div
+            style={{
+              fontFamily: 'var(--cv-font-display)',
+              fontStyle: 'italic',
+              color: 'var(--cv-ink-3)',
+              fontSize: 'var(--cv-text-xl)',
+              fontWeight: 400,
+            }}
+          >
+            {translation.title}
+          </div>
+        )}
+
+        {/* Description as lede */}
+        {translation?.description && (
+          <p
+            style={{
+              margin: 0,
+              color: 'var(--cv-ink-2)',
+              fontSize: 'var(--cv-text-md)',
+              lineHeight: 1.65,
+              maxWidth: '62ch',
+            }}
+          >
+            {translation.description}
+          </p>
+        )}
+      </div>
+
+      {/* ── Info strip ──────────────────────────────────────────────────── */}
       {(latestEdition || festival.typicalMonth) && (
-        <Stack gap="xs">
-          {latestEdition?.startDate && !latestEdition.isDateTba ? (
-            <Group gap="xs">
-              <IconCalendar size={16} color="var(--mantine-color-teal-6)" />
-              <Text size="sm" fw={500}>
-                {formatDateRange(latestEdition.startDate, latestEdition.endDate)}
-              </Text>
-            </Group>
-          ) : festival.typicalMonth ? (
-            <Group gap="xs">
-              <IconCalendar size={16} color="var(--mantine-color-teal-6)" />
-              <Text size="sm" fw={500} c="dimmed">
-                Usually in {formatTypicalMonth(festival.typicalMonth)}
-              </Text>
-            </Group>
-          ) : (
-            <Group gap="xs">
-              <IconCalendar size={16} color="var(--mantine-color-teal-6)" />
-              <Text size="sm" fw={500}>Dates TBA</Text>
-            </Group>
-          )}
+        <div className="cv-infostrip" style={{ marginBottom: 40 }}>
+          {/* Timing cell */}
+          <div className="cv-infostrip__item">
+            <span className="cv-infostrip__k">
+              <IconCalendar size={11} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+              {timingConfirmed ? 'Next edition' : 'Timing'}
+            </span>
+            {timingConfirmed && (
+              <span className="cv-infostrip__v">{timingConfirmed}</span>
+            )}
+            {timingApprox && (
+              <span className="cv-infostrip__v cv-infostrip__v--approx">{timingApprox}</span>
+            )}
+            {timingTba && (
+              <span className="cv-infostrip__v cv-infostrip__v--approx">Dates TBA</span>
+            )}
+          </div>
 
+          {/* Venue cell */}
           {latestEdition?.venueName && (
-            <Group gap="xs">
-              <IconMapPin size={16} color="var(--mantine-color-blue-6)" />
-              <Text size="sm">{latestEdition.venueName}</Text>
-            </Group>
+            <div className="cv-infostrip__item">
+              <span className="cv-infostrip__k">
+                <IconMapPin size={11} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+                Venue
+              </span>
+              <span className="cv-infostrip__v">{latestEdition.venueName}</span>
+            </div>
           )}
 
+          {/* Parking cell */}
           {latestEdition?.parkingName && (
-            <Group gap="xs">
-              <IconParking size={16} color="var(--mantine-color-orange-6)" />
-              <Text size="sm">{latestEdition.parkingName}</Text>
-            </Group>
+            <div className="cv-infostrip__item">
+              <span className="cv-infostrip__k">
+                <IconParking size={11} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+                Parking
+              </span>
+              <span className="cv-infostrip__v">{latestEdition.parkingName}</span>
+            </div>
           )}
-        </Stack>
+
+          {/* Status cell — only for non-published */}
+          {latestEdition && latestEdition.status !== 'PUBLISHED' && (
+            <div className="cv-infostrip__item">
+              <span className="cv-infostrip__k">Status</span>
+              <span
+                className="cv-infostrip__v"
+                style={{ color: `var(--mantine-color-${EDITION_STATUS_COLORS[latestEdition.status]}-6)` }}
+              >
+                {EDITION_STATUS_LABELS[latestEdition.status]}
+              </span>
+            </div>
+          )}
+        </div>
       )}
 
-      {/* Cover image — between key facts and description */}
+      {/* ── Cover image ─────────────────────────────────────────────────── */}
       <Image
         src={festival.media?.[0]?.url ?? '/images/placeholder.svg'}
-        alt={festival.media?.[0]?.alt ?? (festival.titleEl ?? translation?.title ?? festival.slug)}
-        radius="md"
-        mah={360}
+        alt={festival.media?.[0]?.alt ?? displayTitle}
+        radius="lg"
+        mah={400}
         fit="cover"
+        style={{ marginBottom: 56 }}
         onError={(e) => {
           (e.currentTarget as HTMLImageElement).src = '/images/placeholder.svg';
         }}
       />
 
-      {translation?.description && (
-        <>
-          <Divider />
-          <Text size="md" style={{ lineHeight: 1.7 }}>
-            {translation.description}
-          </Text>
-        </>
+      {/* ── Editions timeline ────────────────────────────────────────────── */}
+      {festival.editions.length > 0 && (
+        <section style={{ marginBottom: 56 }}>
+          <div
+            style={{
+              paddingBottom: 12,
+              borderBottom: '1px solid var(--cv-line)',
+              marginBottom: 24,
+            }}
+          >
+            <h2
+              style={{
+                fontFamily: 'var(--cv-font-display)',
+                fontSize: 'var(--cv-text-lg)',
+                fontWeight: 500,
+                letterSpacing: '-0.01em',
+                color: 'var(--cv-ink)',
+                margin: 0,
+              }}
+            >
+              Editions
+            </h2>
+          </div>
+
+          <div className="cv-editions">
+            {festival.editions.map((edition, i) => {
+              const isCurrent = i === 0;
+              const { text, isApprox } = editionDateLabel(edition);
+
+              return (
+                <div
+                  key={edition.id}
+                  className={`cv-edition${isCurrent ? ' cv-edition--current' : ''}`}
+                >
+                  <div className="cv-edition__year">
+                    {edition.year}
+                    {isCurrent && (
+                      <span
+                        className="cv-mono"
+                        style={{ color: 'var(--cv-primary-ink)', fontSize: 10 }}
+                      >
+                        Latest
+                      </span>
+                    )}
+                    {edition.status !== 'PUBLISHED' && (
+                      <span
+                        className="cv-mono"
+                        style={{
+                          color: `var(--mantine-color-${EDITION_STATUS_COLORS[edition.status]}-6)`,
+                          fontSize: 10,
+                        }}
+                      >
+                        {EDITION_STATUS_LABELS[edition.status]}
+                      </span>
+                    )}
+                  </div>
+                  <div className={`cv-edition__when${isApprox ? ' cv-edition__when--approx' : ''}`}>
+                    {text}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
       )}
 
+      {/* ── Map ─────────────────────────────────────────────────────────── */}
       {markers.length > 0 && (
-        <>
-          <Divider />
-          <LeafletMap
-            markers={markers}
-            center={mapCenter}
-            zoom={15}
-            height={280}
-          />
-        </>
+        <section>
+          <div
+            style={{
+              paddingBottom: 12,
+              borderBottom: '1px solid var(--cv-line)',
+              marginBottom: 20,
+            }}
+          >
+            <span className="cv-mono" style={{ color: 'var(--cv-ink-3)' }}>
+              Location
+            </span>
+          </div>
+          <div
+            style={{
+              border: '1px solid var(--cv-line)',
+              borderRadius: 'var(--cv-radius-lg)',
+              overflow: 'hidden',
+            }}
+          >
+            <LeafletMap
+              markers={markers}
+              center={mapCenter}
+              zoom={15}
+              height={300}
+            />
+          </div>
+        </section>
       )}
-    </Stack>
+    </div>
   );
 }

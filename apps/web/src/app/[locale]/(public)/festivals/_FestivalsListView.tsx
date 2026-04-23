@@ -83,7 +83,7 @@ export function FestivalsListView() {
   }, [festivals, filters.month]);
 
   return (
-    <Stack gap="lg">
+    <Stack gap={32}>
       <FestivalsFilter filters={filters} onChange={handleFiltersChange} />
 
       {!isLoading && !isError && (festivals?.length ?? 0) > 0 && (

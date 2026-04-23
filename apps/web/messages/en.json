@@ -42,7 +42,15 @@
   },
   "home": {
     "title": "Cyprus Villages",
-    "description": "Discover traditional festivals and villages across Cyprus"
+    "description": "Discover traditional festivals and villages across Cyprus",
+    "eyebrow": "Cyprus · Cultural Heritage",
+    "festivalsSection": "Upcoming Festivals",
+    "villagesSection": "Villages to Discover",
+    "browseFestivals": "Browse all festivals",
+    "browseVillages": "All villages",
+    "exploreMap": "Explore map",
+    "byMonthSection": "Explore by month",
+    "mapSection": "On the map"
   },
   "common": {
     "loading": "Loading...",

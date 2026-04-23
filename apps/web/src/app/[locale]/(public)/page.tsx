@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { PageContainer, SectionTitle } from '@/shared/ui';
+import { PageContainer } from '@/shared/ui';
+import { HomeView } from './_HomeView';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('home');
@@ -8,11 +9,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const t = await getTranslations('home');
-
   return (
     <PageContainer>
-      <SectionTitle title={t('title')} description={t('description')} />
+      <HomeView />
     </PageContainer>
   );
 }

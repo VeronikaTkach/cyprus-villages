@@ -159,3 +159,90 @@
   color: var(--cv-ink-3);
   border: 1px solid var(--cv-line-strong);
 }
+
+/* ── Info strip — key/value rows for detail pages ────────────────────
+   Rendered as <div className="cv-infostrip"> containing
+   <div className="cv-infostrip__item"> children.
+   ─────────────────────────────────────────────────────────────────── */
+.cv-infostrip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  border: 1px solid var(--cv-line);
+  border-radius: var(--cv-radius-md);
+  background: var(--cv-surface);
+  overflow: hidden;
+}
+.cv-infostrip__item {
+  padding: 14px 20px;
+  border-right: 1px solid var(--cv-line);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cv-infostrip__item:last-child { border-right: none; }
+.cv-infostrip__k {
+  font-family: var(--cv-font-mono);
+  font-size: var(--cv-text-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cv-ink-3);
+}
+.cv-infostrip__v {
+  font-size: var(--cv-text-base);
+  color: var(--cv-ink);
+  font-weight: 500;
+}
+.cv-infostrip__v--approx {
+  font-style: italic;
+  color: var(--cv-ink-3);
+  font-weight: 400;
+}
+
+/* ── Editions timeline ────────────────────────────────────────────────
+   Left-border timeline for past/upcoming festival editions.
+   ─────────────────────────────────────────────────────────────────── */
+.cv-editions {
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--cv-line);
+  padding-left: 24px;
+}
+.cv-edition {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--cv-line);
+  position: relative;
+}
+.cv-edition:last-child { border-bottom: none; }
+.cv-edition::before {
+  content: '';
+  position: absolute;
+  left: -29px;
+  top: 20px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--cv-canvas);
+  border: 1.5px solid var(--cv-line-strong);
+}
+.cv-edition--current::before {
+  background: var(--cv-primary);
+  border-color: var(--cv-primary);
+}
+.cv-edition__year {
+  font-family: var(--cv-font-display);
+  font-size: var(--cv-text-lg);
+  font-weight: 500;
+  color: var(--cv-ink);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cv-edition__when {
+  font-size: var(--cv-text-sm);
+  color: var(--cv-ink-2);
+  margin-top: 2px;
+}
+.cv-edition__when--approx {
+  font-style: italic;
+  color: var(--cv-ink-3);
+}

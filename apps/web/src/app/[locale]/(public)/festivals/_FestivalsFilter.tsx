@@ -1,7 +1,7 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { Button, Group, Select } from '@mantine/core';
+import { Group, Select } from '@mantine/core';
 import { IconX } from '@tabler/icons-react';
 import { usePublicVillages } from '@/entities/village';
 import { CATEGORY_LABELS } from '@/entities/festival';
@@ -59,55 +59,85 @@ export function FestivalsFilter({ filters, onChange }: IFestivalsFilterProps) {
   const yearOptions = getYearOptions();
 
   return (
-    <Group gap="sm" wrap="wrap" align="flex-end">
-      <Select
-        placeholder={t('filters.category')}
-        data={categoryOptions}
-        value={filters.category ?? null}
-        onChange={(val) => onChange({ ...filters, category: val ?? undefined })}
-        clearable
-        size="sm"
-        style={{ flex: '1 1 140px', minWidth: 130, maxWidth: 180 }}
-      />
-      <Select
-        placeholder={t('filters.village')}
-        data={villageOptions}
-        value={filters.villageId !== undefined ? String(filters.villageId) : null}
-        onChange={(val) => onChange({ ...filters, villageId: val !== null ? Number(val) : undefined })}
-        clearable
-        searchable
-        size="sm"
-        style={{ flex: '1 1 160px', minWidth: 150, maxWidth: 220 }}
-      />
-      <Select
-        placeholder={t('filters.year')}
-        data={yearOptions}
-        value={filters.year !== undefined ? String(filters.year) : null}
-        onChange={(val) => onChange({ ...filters, year: val !== null ? Number(val) : undefined })}
-        clearable
-        size="sm"
-        style={{ flex: '1 1 90px', minWidth: 90, maxWidth: 110 }}
-      />
-      <Select
-        placeholder={t('filters.month')}
-        data={monthOptions}
-        value={filters.month !== undefined ? String(filters.month) : null}
-        onChange={(val) => onChange({ ...filters, month: val !== null ? Number(val) : undefined })}
-        clearable
-        size="sm"
-        style={{ flex: '1 1 130px', minWidth: 130, maxWidth: 160 }}
-      />
-      {hasFilters && (
-        <Button
-          variant="subtle"
-          color="gray"
+    <div
+      style={{
+        padding: '12px 16px',
+        borderRadius: 'var(--cv-radius-md)',
+        background: 'var(--cv-surface-sunk)',
+        border: '1px solid var(--cv-line)',
+      }}
+    >
+      <Group gap={8} wrap="wrap" align="flex-end">
+        <Select
+          placeholder={t('filters.category')}
+          data={categoryOptions}
+          value={filters.category ?? null}
+          onChange={(val) => onChange({ ...filters, category: val ?? undefined })}
+          clearable
           size="sm"
-          leftSection={<IconX size={14} />}
-          onClick={() => onChange({})}
-        >
-          {t('filters.clearFilters')}
-        </Button>
-      )}
-    </Group>
+          style={{ flex: '1 1 140px', minWidth: 130, maxWidth: 180 }}
+        />
+        <Select
+          placeholder={t('filters.village')}
+          data={villageOptions}
+          value={filters.villageId !== undefined ? String(filters.villageId) : null}
+          onChange={(val) =>
+            onChange({ ...filters, villageId: val !== null ? Number(val) : undefined })
+          }
+          clearable
+          searchable
+          size="sm"
+          style={{ flex: '1 1 160px', minWidth: 150, maxWidth: 220 }}
+        />
+        <Select
+          placeholder={t('filters.year')}
+          data={yearOptions}
+          value={filters.year !== undefined ? String(filters.year) : null}
+          onChange={(val) =>
+            onChange({ ...filters, year: val !== null ? Number(val) : undefined })
+          }
+          clearable
+          size="sm"
+          style={{ flex: '1 1 90px', minWidth: 90, maxWidth: 110 }}
+        />
+        <Select
+          placeholder={t('filters.month')}
+          data={monthOptions}
+          value={filters.month !== undefined ? String(filters.month) : null}
+          onChange={(val) =>
+            onChange({ ...filters, month: val !== null ? Number(val) : undefined })
+          }
+          clearable
+          size="sm"
+          style={{ flex: '1 1 130px', minWidth: 130, maxWidth: 160 }}
+        />
+
+        {hasFilters && (
+          <button
+            onClick={() => onChange({})}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 5,
+              padding: '5px 10px',
+              borderRadius: 'var(--cv-radius-sm)',
+              border: '1px solid var(--cv-line-strong)',
+              background: 'transparent',
+              color: 'var(--cv-ink-3)',
+              fontFamily: 'var(--cv-font-mono)',
+              fontSize: 11,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              transition: 'color var(--cv-dur) var(--cv-ease), border-color var(--cv-dur) var(--cv-ease)',
+            }}
+          >
+            <IconX size={12} />
+            {t('filters.clearFilters')}
+          </button>
+        )}
+      </Group>
+    </div>
   );
 }
