@@ -1,7 +1,4 @@
-'use client';
-
-import { AppShell } from '@mantine/core';
-import { Header } from '@/widgets/header';
+import { PublicSidebar } from '@/widgets/public-sidebar';
 
 interface IPublicLayoutProps {
   children: React.ReactNode;
@@ -9,9 +6,11 @@ interface IPublicLayoutProps {
 
 export function PublicLayout({ children }: IPublicLayoutProps) {
   return (
-    <AppShell header={{ height: 60 }} padding={0}>
-      <Header />
-      <AppShell.Main>{children}</AppShell.Main>
-    </AppShell>
+    <div className="cv-shell">
+      <PublicSidebar />
+      <div className="cv-body">
+        <main className="cv-main">{children}</main>
+      </div>
+    </div>
   );
 }

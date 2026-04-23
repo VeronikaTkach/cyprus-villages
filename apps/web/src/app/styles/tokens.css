@@ -198,6 +198,143 @@
   font-weight: 400;
 }
 
+/* ── Page background ─────────────────────────────────────────────────
+   Applied to body so the warm canvas shows through any gap.
+   ─────────────────────────────────────────────────────────────────── */
+body {
+  background: var(--cv-canvas);
+}
+
+/* ── Public shell — sidebar (desktop) / topbar (mobile) ──────────────
+
+   Desktop ≥ 768 px : grid [240px | 1fr]
+     sidebar sticky at left, main content scrolls on the right.
+
+   Mobile < 768 px : single column
+     sidebar hidden, topbar sticks to the top of the screen.
+   ─────────────────────────────────────────────────────────────────── */
+.cv-shell {
+  min-height: 100vh;
+}
+
+@media (min-width: 768px) {
+  .cv-shell {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    align-items: start;
+  }
+}
+
+/* Sidebar — hidden on mobile */
+.cv-sidebar {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .cv-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    padding: 28px 20px;
+    background: var(--cv-canvas);
+    border-right: 1px solid var(--cv-line);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+}
+
+/* Brand logo */
+.cv-brand {
+  font-family: var(--cv-font-display);
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--cv-ink);
+  text-decoration: none;
+}
+.cv-brand__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--cv-primary);
+  flex-shrink: 0;
+}
+
+/* Vertical nav list */
+.cv-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.cv-nav a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--cv-radius-sm);
+  color: var(--cv-ink-2);
+  font-size: var(--cv-text-sm);
+  font-weight: 500;
+  text-decoration: none;
+  transition: background var(--cv-dur) var(--cv-ease),
+              color var(--cv-dur) var(--cv-ease);
+}
+.cv-nav a:hover { background: var(--cv-surface-alt); color: var(--cv-ink); }
+.cv-nav a.active {
+  background: var(--cv-primary-soft);
+  color: var(--cv-primary-ink);
+}
+
+/* Content area — wraps topbar + main */
+.cv-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Main content padding */
+.cv-main {
+  padding: 24px 20px;
+  flex: 1;
+  container-type: inline-size;
+}
+@media (min-width: 768px) {
+  .cv-main { padding: 48px 56px; }
+}
+
+/* Mobile topbar — shown only below 768 px */
+.cv-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--cv-line);
+  background: var(--cv-canvas);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+@media (min-width: 768px) {
+  .cv-topbar { display: none; }
+}
+
+.cv-topbar__menu {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  border: 1px solid var(--cv-line);
+  background: var(--cv-surface);
+  cursor: pointer;
+  color: var(--cv-ink-2);
+}
+
 /* ── Editions timeline ────────────────────────────────────────────────
    Left-border timeline for past/upcoming festival editions.
    ─────────────────────────────────────────────────────────────────── */
