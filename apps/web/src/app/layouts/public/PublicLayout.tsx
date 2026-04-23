@@ -9,7 +9,7 @@ interface IPublicLayoutProps {
 
 export function PublicLayout({ children }: IPublicLayoutProps) {
   return (
-    <AppShell header={{ height: 60 }} padding="md">
+    <AppShell header={{ height: 60 }} padding={0}>
       <Header />
       <AppShell.Main>{children}</AppShell.Main>
     </AppShell>

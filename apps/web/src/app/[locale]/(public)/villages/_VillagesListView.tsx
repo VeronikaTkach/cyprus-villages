@@ -15,7 +15,7 @@ export function VillagesListView() {
   if (!villages?.length) return <EmptyState description={t('empty')} />;
 
   return (
-    <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+    <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing={20}>
       {villages.map((village) => (
         <Link
           key={village.id}

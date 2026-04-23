@@ -7,7 +7,7 @@ interface IPageContainerProps extends ContainerProps {
 
 export function PageContainer({ children, ...props }: IPageContainerProps) {
   return (
-    <Container size="1120px" py="xl" {...props}>
+    <Container size="1120px" py={48} px={24} {...props}>
       {children}
     </Container>
   );

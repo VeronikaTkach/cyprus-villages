@@ -120,7 +120,7 @@ export function FestivalsTimeline({ festivals, activeYear }: IFestivalsTimelineP
               labelPosition="left"
             />
 
-            <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+            <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing={20}>
               {groupFestivals.map((festival) => {
                 const edition = getDisplayEdition(festival);
                 const ongoing = isOngoing(edition);

@@ -46,7 +46,7 @@ export function VillageDetailView({ slug }: IVillageDetailViewProps) {
   }
 
   return (
-    <Stack gap="lg">
+    <Stack gap={32}>
       <div>
         <Group gap="sm" align="baseline" mb={4}>
           <Title order={1}>{translation?.name ?? village.slug}</Title>
@@ -105,7 +105,7 @@ export function VillageDetailView({ slug }: IVillageDetailViewProps) {
           {tFestivals('title')}
         </Title>
         {village.festivals && village.festivals.length > 0 ? (
-          <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+          <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing={20}>
             {village.festivals.map((festival) => (
               <FestivalCard key={festival.id} festival={festival} />
             ))}

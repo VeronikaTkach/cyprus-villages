@@ -12,7 +12,7 @@ export default async function MapPage() {
   const t = await getTranslations('map');
 
   return (
-    <PageContainer>
+    <PageContainer size="1280px">
       <SectionTitle title={t('title')} description={t('description')} />
       <MapView />
     </PageContainer>
