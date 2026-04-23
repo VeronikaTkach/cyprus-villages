@@ -1,0 +1,110 @@
+/* ============================================================
+   Cyprus Villages — Design Tokens
+   Adapted from design-reference/tokens.css for the Next.js app.
+   Only custom properties and one utility class live here.
+   Component-level classes (.cv-card, .cv-btn, etc.) are added
+   per-phase as components are migrated to the design system.
+   ============================================================ */
+
+:root {
+  /* ── Surfaces — warm off-whites ──────────────────────────── */
+  --cv-canvas:       oklch(98.5% 0.006 80);   /* page background, warm paper */
+  --cv-surface:      oklch(100% 0 0);          /* cards, modals */
+  --cv-surface-sunk: oklch(96.5% 0.008 80);   /* placeholders, image wells */
+  --cv-surface-alt:  oklch(97.5% 0.010 85);   /* section bands */
+
+  /* ── Ink — deep but not pure black ───────────────────────── */
+  --cv-ink:   oklch(22% 0.012 60);   /* primary text */
+  --cv-ink-2: oklch(42% 0.010 60);   /* secondary text */
+  --cv-ink-3: oklch(62% 0.008 70);   /* metadata / captions */
+  --cv-ink-4: oklch(78% 0.006 80);   /* disabled / hint */
+
+  /* ── Borders — hairline only ─────────────────────────────── */
+  --cv-line:        oklch(92% 0.006 80);
+  --cv-line-strong: oklch(86% 0.008 80);
+
+  /* ── Primary — muted olive/sage (single accent) ──────────── */
+  --cv-primary:      oklch(52% 0.060 145);   /* olive-sage */
+  --cv-primary-soft: oklch(94% 0.025 145);   /* tinted background */
+  --cv-primary-ink:  oklch(38% 0.055 145);   /* on-tint text */
+
+  /* ── Category tints ──────────────────────────────────────── */
+  --cv-tag-cultural-bg:   oklch(94% 0.030 235);
+  --cv-tag-cultural-fg:   oklch(40% 0.060 235);
+  --cv-tag-wine-bg:       oklch(94% 0.035 20);
+  --cv-tag-wine-fg:       oklch(42% 0.065 20);
+  --cv-tag-religious-bg:  oklch(94% 0.028 60);
+  --cv-tag-religious-fg:  oklch(42% 0.055 60);
+  --cv-tag-food-bg:       oklch(94% 0.030 100);
+  --cv-tag-food-fg:       oklch(40% 0.060 120);
+  --cv-tag-music-bg:      oklch(94% 0.030 310);
+  --cv-tag-music-fg:      oklch(42% 0.060 310);
+  --cv-tag-arts-bg:       oklch(94% 0.028 260);
+  --cv-tag-arts-fg:       oklch(40% 0.060 260);
+  --cv-tag-sport-bg:      oklch(94% 0.030 160);
+  --cv-tag-sport-fg:      oklch(40% 0.060 160);
+  --cv-tag-other-bg:      oklch(94% 0.008 80);
+  --cv-tag-other-fg:      oklch(42% 0.010 60);
+
+  /* ── Typography ──────────────────────────────────────────── */
+  --cv-font-display: 'Fraunces', Georgia, serif;
+  --cv-font-ui:      'IBM Plex Sans', -apple-system, system-ui, sans-serif;
+  --cv-font-mono:    'IBM Plex Mono', ui-monospace, Menlo, monospace;
+
+  /* Type scale */
+  --cv-text-xs:   12px;    /* micro labels, mono */
+  --cv-text-sm:   13.5px;  /* metadata, captions */
+  --cv-text-base: 15.5px;  /* body */
+  --cv-text-md:   17px;    /* emphasized body / card title */
+  --cv-text-lg:   20px;    /* section head */
+  --cv-text-xl:   26px;    /* page title (mobile) */
+  --cv-text-2xl:  34px;    /* page title (desktop) */
+  --cv-text-3xl:  44px;    /* hero (desktop) */
+  --cv-text-4xl:  56px;    /* home hero only */
+
+  /* ── Spacing (8 px base) ──────────────────────────────────── */
+  --cv-s-1:  4px;
+  --cv-s-2:  8px;
+  --cv-s-3:  12px;
+  --cv-s-4:  16px;
+  --cv-s-5:  20px;
+  --cv-s-6:  24px;
+  --cv-s-8:  32px;
+  --cv-s-10: 40px;
+  --cv-s-12: 48px;
+  --cv-s-16: 64px;
+  --cv-s-20: 80px;
+  --cv-s-24: 96px;
+
+  /* Section vertical rhythm */
+  --cv-section-y-sm: 48px;
+  --cv-section-y-md: 64px;
+  --cv-section-y-lg: 96px;
+
+  /* ── Radii ───────────────────────────────────────────────── */
+  --cv-radius-sm: 6px;    /* chips, inputs */
+  --cv-radius-md: 10px;   /* cards, buttons */
+  --cv-radius-lg: 14px;   /* large cards, hero panels */
+  --cv-radius-xl: 20px;
+
+  /* ── Container widths ────────────────────────────────────── */
+  --cv-container-narrow: 720px;   /* prose, single-column detail */
+  --cv-container-base:   1120px;  /* most index pages */
+  --cv-container-wide:   1280px;  /* map page */
+
+  /* ── Motion ──────────────────────────────────────────────── */
+  --cv-ease: cubic-bezier(.2, .7, .2, 1);
+  --cv-dur:  160ms;
+}
+
+/* ── Utility: mono label style ───────────────────────────────
+   Used for eyebrows, category chips, section divider labels.
+   Apply className="cv-mono" where Mantine doesn't own the node.
+   ─────────────────────────────────────────────────────────── */
+.cv-mono {
+  font-family: var(--cv-font-mono);
+  font-size: var(--cv-text-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cv-ink-3);
+}
