@@ -113,7 +113,16 @@ export function FestivalsTimeline({ festivals, activeYear }: IFestivalsTimelineP
           <Stack key={month ?? 'tba'} gap="lg">
             <Divider
               label={
-                <Text fw={700} size="sm" tt="uppercase" c="dimmed">
+                <Text
+                  fw={600}
+                  size="xs"
+                  tt="uppercase"
+                  style={{
+                    fontFamily: 'var(--cv-font-mono)',
+                    letterSpacing: '0.1em',
+                    color: 'var(--cv-ink-2)',
+                  }}
+                >
                   {heading}
                 </Text>
               }

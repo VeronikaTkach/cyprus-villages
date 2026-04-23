@@ -1,7 +1,7 @@
 'use client';
 
 import { useLocale } from 'next-intl';
-import { Card, Text, Badge, Group, Stack } from '@mantine/core';
+import { Card, Group, Stack, Text } from '@mantine/core';
 import { IconMapPin } from '@tabler/icons-react';
 import { getTranslation } from '../model';
 import type { IVillage } from '../model';
@@ -15,37 +15,54 @@ export function VillageCard({ village }: IVillageCardProps) {
   const t = getTranslation(village, locale);
 
   return (
-    <Card shadow="sm" padding="lg" radius="md" withBorder>
-      <Stack gap="xs">
-        <Group justify="space-between" align="flex-start">
-          <Text fw={600} size="lg" lineClamp={1}>
+    <Card
+      padding={20}
+      radius="md"
+      withBorder
+      className="cv-card"
+      style={{ borderColor: 'var(--cv-line)' }}
+    >
+      <Stack gap={12}>
+        {/* Title row: locale name + Greek name side by side */}
+        <Group justify="space-between" align="baseline" gap={12}>
+          <Text
+            fw={500}
+            size="lg"
+            lineClamp={1}
+            style={{ letterSpacing: '-0.01em', color: 'var(--cv-ink)' }}
+          >
             {t?.name ?? village.slug}
           </Text>
           {village.nameEl && locale !== 'el' && (
-            <Text c="dimmed" size="sm" style={{ flexShrink: 0 }}>
+            <Text
+              size="sm"
+              style={{ color: 'var(--cv-ink-3)', fontStyle: 'italic', flexShrink: 0 }}
+            >
               {village.nameEl}
             </Text>
           )}
         </Group>
 
+        {/* Region / district */}
         {(village.district ?? village.region) && (
-          <Group gap="xs">
-            <IconMapPin size={14} color="var(--mantine-color-dimmed)" />
-            <Text c="dimmed" size="sm">
+          <Group gap={6}>
+            <IconMapPin size={13} color="var(--cv-ink-4)" />
+            <Text size="sm" style={{ color: 'var(--cv-ink-3)' }}>
               {[village.district, village.region].filter(Boolean).join(', ')}
             </Text>
           </Group>
         )}
 
+        {/* Description */}
         {t?.description && (
-          <Text size="sm" c="dimmed" lineClamp={3}>
+          <Text
+            size="sm"
+            lineClamp={3}
+            style={{ color: 'var(--cv-ink-2)', lineHeight: 1.55 }}
+          >
             {t.description}
           </Text>
         )}
-
-        <Badge variant="light" color="teal" size="sm" mt="xs">
-          {village.slug}
-        </Badge>
       </Stack>
     </Card>
   );

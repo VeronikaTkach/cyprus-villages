@@ -108,3 +108,54 @@
   text-transform: uppercase;
   color: var(--cv-ink-3);
 }
+
+/* ── Card hover & transition ─────────────────────────────────
+   Applied via className="cv-card" on Mantine <Card>.
+   Provides the hairline border and hover lift that CSS-in-JS
+   inline styles cannot express.
+   ─────────────────────────────────────────────────────────── */
+.cv-card {
+  transition: border-color var(--cv-dur) var(--cv-ease),
+              transform var(--cv-dur) var(--cv-ease);
+}
+.cv-card:hover {
+  border-color: var(--cv-line-strong) !important;
+  transform: translateY(-1px);
+}
+
+/* ── Category & metadata chips ───────────────────────────────
+   Rendered as <span className="cv-chip cv-chip--[category]">.
+   Mantine Badge is intentionally not used here — the mono font,
+   exact padding, and oklch category tints need direct control.
+   ─────────────────────────────────────────────────────────── */
+.cv-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-family: var(--cv-font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 500;
+  white-space: nowrap;
+  line-height: 1.4;
+  /* default: primary tint (fallback for unknown category) */
+  background: var(--cv-primary-soft);
+  color: var(--cv-primary-ink);
+}
+.cv-chip--cultural  { background: var(--cv-tag-cultural-bg);  color: var(--cv-tag-cultural-fg); }
+.cv-chip--wine      { background: var(--cv-tag-wine-bg);      color: var(--cv-tag-wine-fg); }
+.cv-chip--religious { background: var(--cv-tag-religious-bg); color: var(--cv-tag-religious-fg); }
+.cv-chip--food      { background: var(--cv-tag-food-bg);      color: var(--cv-tag-food-fg); }
+.cv-chip--music     { background: var(--cv-tag-music-bg);     color: var(--cv-tag-music-fg); }
+.cv-chip--arts      { background: var(--cv-tag-arts-bg);      color: var(--cv-tag-arts-fg); }
+.cv-chip--sport     { background: var(--cv-tag-sport-bg);     color: var(--cv-tag-sport-fg); }
+.cv-chip--other     { background: var(--cv-tag-other-bg);     color: var(--cv-tag-other-fg); }
+
+/* Outlined region/location chip */
+.cv-chip--region {
+  background: transparent;
+  color: var(--cv-ink-3);
+  border: 1px solid var(--cv-line-strong);
+}
