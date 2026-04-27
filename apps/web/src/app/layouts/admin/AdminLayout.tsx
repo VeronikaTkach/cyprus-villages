@@ -34,6 +34,12 @@ export function AdminLayout({ children }: IAdminLayoutProps) {
     });
   }, [mounted, isAuthenticated]);
 
+  useEffect(() => {
+    if (mounted && !isAuthenticated && pathname !== '/admin/login') {
+      router.replace('/admin/login');
+    }
+  }, [mounted, isAuthenticated, pathname, router]);
+
   // Pass through the login page without any shell or auth check
   if (pathname === '/admin/login') {
     return <>{children}</>;
@@ -48,9 +54,8 @@ export function AdminLayout({ children }: IAdminLayoutProps) {
     );
   }
 
-  // Redirect to login if not authenticated
+  // Show loader while redirect is in flight
   if (!isAuthenticated) {
-    router.replace('/admin/login');
     return (
       <Center mih="100vh">
         <Loader size="sm" />
