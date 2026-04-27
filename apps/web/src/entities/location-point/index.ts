@@ -8,7 +8,7 @@ export type {
 } from './model';
 
 // Lib
-export { locationPointTypeToMarkerKind } from './lib';
+export { locationPointTypeToMarkerKind, buildLocationPointMarkers } from './lib';
 
 // API & queries
 export {

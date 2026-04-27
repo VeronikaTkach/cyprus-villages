@@ -7,6 +7,7 @@ import { Stack, Text } from '@mantine/core';
 import { EmptyState, LoadingState } from '@/shared/ui';
 import { usePublicFestivals, CATEGORY_LABELS, getLatestEdition } from '@/entities/festival';
 import type { IPublicFestivalsFilter } from '@/entities/festival';
+import { usePublicVillages } from '@/entities/village';
 import { FestivalsFilter } from './_FestivalsFilter';
 import { MonthStrip } from './_MonthStrip';
 import { FestivalsTimeline } from './_FestivalsTimeline';
@@ -28,6 +29,7 @@ function parsePositiveInt(val: string | null | undefined): number | undefined {
 export function FestivalsListView() {
   const t = useTranslations('festivals');
   const searchParams = useSearchParams();
+  const { data: villages } = usePublicVillages();
   const router = useRouter();
   // usePathname is always a string here (inside a rendered page); the null union
   // is a Next.js type artefact for components that may render outside a layout.
@@ -82,9 +84,14 @@ export function FestivalsListView() {
     return months;
   }, [festivals, filters.month]);
 
+  const villageOptions = (villages ?? []).map((v) => ({
+    value: String(v.id),
+    label: v.nameEl ?? v.slug,
+  }));
+
   return (
     <Stack gap={32}>
-      <FestivalsFilter filters={filters} onChange={handleFiltersChange} />
+      <FestivalsFilter filters={filters} onChange={handleFiltersChange} villageOptions={villageOptions} />
 
       {!isLoading && !isError && (festivals?.length ?? 0) > 0 && (
         <MonthStrip activeMonths={activeMonths} filters={filters} onChange={handleFiltersChange} />

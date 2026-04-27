@@ -1,18 +1,23 @@
-'use client';
-
-import { useTranslations } from 'next-intl';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { SimpleGrid, Text } from '@mantine/core';
 import { Link } from '@/i18n/navigation';
-import { EmptyState, LoadingState } from '@/shared/ui';
-import { VillageCard, usePublicVillages } from '@/entities/village';
+import { EmptyState } from '@/shared/ui';
+import { serverGet } from '@/shared/api/server-fetch';
+import { VillageCard } from '@/entities/village';
+import type { IVillage } from '@/entities/village';
 
-export function VillagesListView() {
-  const t = useTranslations('villages');
-  const { data: villages, isLoading, isError } = usePublicVillages();
+export async function VillagesListView() {
+  const locale = await getLocale();
+  const t = await getTranslations('villages');
 
-  if (isLoading) return <LoadingState />;
-  if (isError) return <Text c="red">{t('loadError')}</Text>;
-  if (!villages?.length) return <EmptyState description={t('empty')} />;
+  let villages: IVillage[] = [];
+  try {
+    villages = await serverGet<IVillage[]>('/villages');
+  } catch {
+    return <Text c="red">{t('loadError')}</Text>;
+  }
+
+  if (!villages.length) return <EmptyState description={t('empty')} />;
 
   return (
     <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing={20}>
@@ -22,7 +27,7 @@ export function VillagesListView() {
           href={`/villages/${village.slug}`}
           style={{ textDecoration: 'none' }}
         >
-          <VillageCard village={village} />
+          <VillageCard village={village} locale={locale} />
         </Link>
       ))}
     </SimpleGrid>

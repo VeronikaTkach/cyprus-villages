@@ -46,6 +46,22 @@ const TYPE_LABELS: Record<string, string> = {
   OTHER: 'Other',
 };
 
+// ─── Modal state hook ──────────────────────────────────────────────────────────
+
+function useLocationPointModal() {
+  const [createOpen, { open: openCreate, close: closeCreate }] = useDisclosure(false);
+  const [editingPoint, setEditingPoint] = useState<ILocationPoint | null>(null);
+
+  return {
+    createOpen,
+    openCreate,
+    closeCreate,
+    editingPoint,
+    openEdit: setEditingPoint,
+    closeEdit: () => setEditingPoint(null),
+  };
+}
+
 // ─── Context ───────────────────────────────────────────────────────────────────
 
 type TContext =
@@ -59,8 +75,14 @@ interface ILocationPointsSectionProps {
 // ─── Component ──────────────────────────────────────────────────────────────────
 
 export function LocationPointsSection({ context }: ILocationPointsSectionProps) {
-  const [createModalOpen, { open: openCreate, close: closeCreate }] = useDisclosure(false);
-  const [editingPoint, setEditingPoint] = useState<ILocationPoint | null>(null);
+  const {
+    createOpen: createModalOpen,
+    openCreate,
+    closeCreate,
+    editingPoint,
+    openEdit,
+    closeEdit,
+  } = useLocationPointModal();
 
   // ── Data fetching ──────────────────────────────────────────
 
@@ -77,6 +99,7 @@ export function LocationPointsSection({ context }: ILocationPointsSectionProps) 
 
   const createMutation = useCreateLocationPoint();
   const updateMutation = useUpdateLocationPoint(editingPoint?.id ?? 0);
+
   const archiveMutation = useArchiveLocationPoint();
 
   // ── Handlers ──────────────────────────────────────────────
@@ -90,7 +113,7 @@ export function LocationPointsSection({ context }: ILocationPointsSectionProps) 
   function handleUpdate(dto: IUpdateLocationPointDto) {
     if (!editingPoint) return;
     updateMutation.mutate(dto, {
-      onSuccess: () => setEditingPoint(null),
+      onSuccess: () => closeEdit(),
     });
   }
 
@@ -181,7 +204,7 @@ export function LocationPointsSection({ context }: ILocationPointsSectionProps) 
                 <Button
                   variant="subtle"
                   size="xs"
-                  onClick={() => setEditingPoint(point)}
+                  onClick={() => openEdit(point)}
                 >
                   Edit
                 </Button>
@@ -225,7 +248,7 @@ export function LocationPointsSection({ context }: ILocationPointsSectionProps) 
       <Modal
         opened={editingPoint !== null}
         onClose={() => {
-          setEditingPoint(null);
+          closeEdit();
           updateMutation.reset();
         }}
         title={editingPoint ? `Edit: ${editingPoint.label}` : 'Edit point'}

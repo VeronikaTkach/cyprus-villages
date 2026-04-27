@@ -6,7 +6,7 @@ import { LeafletMap, LoadingState } from '@/shared/ui';
 import type { IMapMarker } from '@/shared/ui';
 import { usePublicVillages, getTranslation } from '@/entities/village';
 import { useFestivalMapMarkers } from '@/entities/festival';
-import { usePublicMapPoints, locationPointTypeToMarkerKind } from '@/entities/location-point';
+import { usePublicMapPoints, buildLocationPointMarkers } from '@/entities/location-point';
 
 // Cyprus geographic center
 const CYPRUS_CENTER: [number, number] = [35.0, 33.2];
@@ -48,15 +48,7 @@ export function MapView() {
     });
   }
 
-  // LocationPoint markers from public map API
-  for (const point of locationPoints ?? []) {
-    markers.push({
-      lat: point.lat,
-      lng: point.lng,
-      kind: locationPointTypeToMarkerKind(point.type),
-      popup: point.label,
-    });
-  }
+  markers.push(...buildLocationPointMarkers(locationPoints ?? []));
 
   return (
     <div

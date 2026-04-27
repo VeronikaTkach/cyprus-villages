@@ -1,7 +1,7 @@
 'use client';
 
-import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSuccessMessage } from '@/shared/lib/useSuccessMessage';
 import Link from 'next/link';
 import { Alert, Badge, Button, Group, Text } from '@mantine/core';
 import { IconAlertCircle, IconCheck } from '@tabler/icons-react';
@@ -30,20 +30,12 @@ export function FestivalEditionEditView({ id }: IFestivalEditionEditViewProps) {
   const archiveMutation = useArchiveFestivalEdition();
   const cancelMutation = useCancelFestivalEdition();
 
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  function showSuccess(message: string) {
-    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-    setSuccessMessage(message);
-    hideTimerRef.current = setTimeout(() => setSuccessMessage(null), 2500);
-  }
+  const { message: successMessage, show: showSuccess } = useSuccessMessage();
 
   if (isLoading) return <LoadingState />;
   if (isError || !edition) return <Text c="red">Edition not found.</Text>;
 
   function handleSubmit(values: IUpdateFestivalEditionDto) {
-    setSuccessMessage(null);
     updateMutation.mutate(values, {
       onSuccess: () => showSuccess('Changes saved.'),
     });
@@ -51,7 +43,6 @@ export function FestivalEditionEditView({ id }: IFestivalEditionEditViewProps) {
 
   function handlePublish() {
     if (!window.confirm('Publish this edition? It will become visible on the public site.')) return;
-    setSuccessMessage(null);
     publishMutation.mutate(id, {
       onSuccess: () => showSuccess('Edition published.'),
     });
@@ -66,7 +57,6 @@ export function FestivalEditionEditView({ id }: IFestivalEditionEditViewProps) {
 
   function handleCancel() {
     if (!window.confirm('Cancel this edition?')) return;
-    setSuccessMessage(null);
     cancelMutation.mutate(id, {
       onSuccess: () => showSuccess('Edition cancelled.'),
     });

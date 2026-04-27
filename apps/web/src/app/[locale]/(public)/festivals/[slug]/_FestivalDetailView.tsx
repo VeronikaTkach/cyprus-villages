@@ -17,7 +17,7 @@ import {
   formatTypicalMonth,
 } from '@/entities/festival';
 import type { IFestivalEditionBrief } from '@/entities/festival';
-import { usePublicMapPoints, locationPointTypeToMarkerKind } from '@/entities/location-point';
+import { usePublicMapPoints, buildLocationPointMarkers } from '@/entities/location-point';
 
 interface IFestivalDetailViewProps {
   slug: string;
@@ -69,17 +69,10 @@ export function FestivalDetailView({ slug }: IFestivalDetailViewProps) {
       });
     }
 
-    // Add LocationPoint markers for this edition
-    for (const point of (allMapPoints ?? []).filter(
+    const editionPoints = (allMapPoints ?? []).filter(
       (p) => p.festivalEditionId === latestEdition.id,
-    )) {
-      markers.push({
-        lat: point.lat,
-        lng: point.lng,
-        kind: locationPointTypeToMarkerKind(point.type),
-        popup: point.label,
-      });
-    }
+    );
+    markers.push(...buildLocationPointMarkers(editionPoints));
   }
 
   // Center on venue if available, otherwise parking, otherwise Cyprus default

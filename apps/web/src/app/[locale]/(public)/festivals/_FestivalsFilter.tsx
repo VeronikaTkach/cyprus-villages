@@ -3,13 +3,13 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { Group, Select } from '@mantine/core';
 import { IconX } from '@tabler/icons-react';
-import { usePublicVillages } from '@/entities/village';
 import { CATEGORY_LABELS } from '@/entities/festival';
 import type { IPublicFestivalsFilter, TFestivalCategory } from '@/entities/festival';
 
 interface IFestivalsFilterProps {
   filters: IPublicFestivalsFilter;
   onChange: (filters: IPublicFestivalsFilter) => void;
+  villageOptions: { value: string; label: string }[];
 }
 
 const FESTIVAL_CATEGORIES: TFestivalCategory[] = [
@@ -38,21 +38,15 @@ function getYearOptions() {
   });
 }
 
-export function FestivalsFilter({ filters, onChange }: IFestivalsFilterProps) {
+export function FestivalsFilter({ filters, onChange, villageOptions }: IFestivalsFilterProps) {
   const t = useTranslations('festivals');
   const locale = useLocale();
-  const { data: villages } = usePublicVillages();
 
   const hasFilters = !!(filters.category || filters.villageId || filters.year || filters.month);
 
   const categoryOptions = FESTIVAL_CATEGORIES.map((cat) => ({
     value: cat,
     label: CATEGORY_LABELS[cat],
-  }));
-
-  const villageOptions = (villages ?? []).map((v) => ({
-    value: String(v.id),
-    label: v.nameEl ?? v.slug,
   }));
 
   const monthOptions = getMonthOptions(locale);
@@ -130,7 +124,8 @@ export function FestivalsFilter({ filters, onChange }: IFestivalsFilterProps) {
               textTransform: 'uppercase',
               cursor: 'pointer',
               whiteSpace: 'nowrap',
-              transition: 'color var(--cv-dur) var(--cv-ease), border-color var(--cv-dur) var(--cv-ease)',
+              transition:
+                'color var(--cv-dur) var(--cv-ease), border-color var(--cv-dur) var(--cv-ease)',
             }}
           >
             <IconX size={12} />

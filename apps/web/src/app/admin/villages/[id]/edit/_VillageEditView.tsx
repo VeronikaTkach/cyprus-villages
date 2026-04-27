@@ -1,7 +1,7 @@
 'use client';
 
-import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSuccessMessage } from '@/shared/lib/useSuccessMessage';
 import Link from 'next/link';
 import { Alert, Button, Divider, Group, Text } from '@mantine/core';
 import { IconAlertCircle, IconCheck } from '@tabler/icons-react';
@@ -22,14 +22,7 @@ export function VillageEditView({ id }: IVillageEditViewProps) {
   const updateMutation = useUpdateVillage(id);
   const archiveMutation = useArchiveVillage();
 
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  function showSuccess(message: string) {
-    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-    setSuccessMessage(message);
-    hideTimerRef.current = setTimeout(() => setSuccessMessage(null), 2500);
-  }
+  const { message: successMessage, show: showSuccess } = useSuccessMessage();
 
   if (isLoading) return <LoadingState />;
   if (isError || !village) return <Text c="red">Village not found.</Text>;
@@ -39,7 +32,6 @@ export function VillageEditView({ id }: IVillageEditViewProps) {
   }
 
   function handleSubmit(values: IUpdateVillageDto) {
-    setSuccessMessage(null);
     updateMutation.mutate(values, {
       onSuccess: () => showSuccess('Changes saved.'),
     });

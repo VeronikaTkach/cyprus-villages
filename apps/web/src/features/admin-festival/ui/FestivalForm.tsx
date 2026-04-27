@@ -18,7 +18,6 @@ import {
 import { IconAlertCircle } from '@tabler/icons-react';
 import { LOCALE_LABELS } from '@/shared/i18n';
 import type { TLocale } from '@/shared/i18n';
-import { useAdminVillages } from '@/entities/village';
 import { CATEGORY_LABELS } from '@/entities/festival';
 import type { TFestivalCategory, ICreateFestivalDto, IUpdateFestivalDto } from '@/entities/festival';
 
@@ -80,6 +79,7 @@ type TEditValues = z.infer<typeof editSchema>;
 type TFestivalFormProps =
   | {
       mode: 'create';
+      villageOptions: { value: string; label: string }[];
       onSubmit: (values: ICreateFestivalDto) => void;
       isPending: boolean;
       error?: string | null;
@@ -175,18 +175,11 @@ function TranslationTabs({ control }: ITranslationTabsProps) {
 // ─── Create form ──────────────────────────────────────────────────────────────
 
 function CreateForm({
+  villageOptions,
   onSubmit,
   isPending,
   error,
 }: Extract<TFestivalFormProps, { mode: 'create' }>) {
-  const { data: villages } = useAdminVillages();
-  const villageOptions =
-    villages?.map((v) => ({
-      value: String(v.id),
-      label: v.nameEl
-        ? `${v.nameEl} — ${v.translations.find((t) => t.locale === 'en')?.name ?? v.slug}`
-        : (v.translations.find((t) => t.locale === 'en')?.name ?? v.slug),
-    })) ?? [];
 
   const {
     control,

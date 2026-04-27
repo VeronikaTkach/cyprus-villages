@@ -8,7 +8,7 @@ import { EmptyState, LoadingState, LeafletMap } from '@/shared/ui';
 import type { IMapMarker } from '@/shared/ui';
 import { usePublicVillage, getTranslation } from '@/entities/village';
 import { FestivalCard } from '@/entities/festival';
-import { usePublicMapPoints, locationPointTypeToMarkerKind } from '@/entities/location-point';
+import { usePublicMapPoints, buildLocationPointMarkers } from '@/entities/location-point';
 
 interface IVillageDetailViewProps {
   slug: string;
@@ -37,14 +37,8 @@ export function VillageDetailView({ slug }: IVillageDetailViewProps) {
     });
   }
 
-  for (const point of (allMapPoints ?? []).filter((p) => p.villageId === village.id)) {
-    markers.push({
-      lat: point.lat,
-      lng: point.lng,
-      kind: locationPointTypeToMarkerKind(point.type),
-      popup: point.label,
-    });
-  }
+  const villagePoints = (allMapPoints ?? []).filter((p) => p.villageId === village.id);
+  markers.push(...buildLocationPointMarkers(villagePoints));
 
   const displayName = translation?.name ?? village.slug;
 
