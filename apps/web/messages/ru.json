@@ -42,7 +42,15 @@
   },
   "home": {
     "title": "Деревни Кипра",
-    "description": "Откройте для себя традиционные фестивали и деревни Кипра"
+    "description": "Откройте для себя традиционные фестивали и деревни Кипра",
+    "eyebrow": "Кипр · Культурное наследие",
+    "festivalsSection": "Ближайшие фестивали",
+    "villagesSection": "Деревни для изучения",
+    "browseFestivals": "Все фестивали",
+    "browseVillages": "Все деревни",
+    "exploreMap": "Открыть карту",
+    "byMonthSection": "По месяцам",
+    "mapSection": "На карте"
   },
   "common": {
     "loading": "Загрузка...",
