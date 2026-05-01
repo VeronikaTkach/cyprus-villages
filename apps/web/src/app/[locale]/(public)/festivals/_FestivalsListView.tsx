@@ -84,10 +84,10 @@ export function FestivalsListView() {
     return months;
   }, [festivals, filters.month]);
 
-  const villageOptions = (villages ?? []).map((v) => ({
-    value: String(v.id),
-    label: v.nameEl ?? v.slug,
-  }));
+  const villageOptions = useMemo(
+    () => (villages ?? []).map((v) => ({ value: String(v.id), label: v.nameEl ?? v.slug })),
+    [villages],
+  );
 
   return (
     <Stack gap={32}>

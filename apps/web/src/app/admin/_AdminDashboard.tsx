@@ -18,6 +18,18 @@ export interface IAdminDashboardAttention {
   villagesWithoutDescription: { id: number; name: string }[];
 }
 
+// ─── Quick actions data ───────────────────────────────────────────────────────
+
+const PRIMARY_ACTIONS = [
+  { label: 'New village', href: '/admin/villages/new' },
+  { label: 'New festival', href: '/admin/festivals/new' },
+] as const;
+
+const SECONDARY_ACTIONS = [
+  { label: 'Manage villages', href: '/admin/villages' },
+  { label: 'Manage festivals', href: '/admin/festivals' },
+] as const;
+
 // ─── Private section components ───────────────────────────────────────────────
 
 function StatCard({ label, value }: { label: string; value: number }) {
@@ -54,25 +66,69 @@ function QuickActionsSection() {
       <Title order={4} mb="sm">
         Quick actions
       </Title>
-      <Group>
-        <Button
-          component={Link}
-          href="/admin/villages/new"
-          leftSection={<IconPlus size={16} />}
-          variant="light"
-        >
-          New village
-        </Button>
-        <Button
-          component={Link}
-          href="/admin/festivals/new"
-          leftSection={<IconPlus size={16} />}
-          variant="light"
-        >
-          New festival
-        </Button>
-      </Group>
+      <Stack gap="xs">
+        <Group>
+          {PRIMARY_ACTIONS.map(({ label, href }) => (
+            <Button
+              key={href}
+              component={Link}
+              href={href}
+              leftSection={<IconPlus size={16} />}
+              variant="light"
+            >
+              {label}
+            </Button>
+          ))}
+        </Group>
+        <Group gap="md">
+          {SECONDARY_ACTIONS.map(({ label, href }) => (
+            <Anchor key={href} component={Link} href={href} size="sm">
+              {label}
+            </Anchor>
+          ))}
+        </Group>
+      </Stack>
     </div>
+  );
+}
+
+interface IAttentionCardProps {
+  title: string;
+  description?: string;
+  actionHref?: string;
+  actionLabel?: string;
+  items?: { id: number; label: string; href: string }[];
+}
+
+function AttentionCard({ title, description, actionHref, actionLabel, items }: IAttentionCardProps) {
+  const hasBody = description || (items && items.length > 0);
+  return (
+    <Paper withBorder p="md" radius="md">
+      <Group justify="space-between" align="flex-start" mb={hasBody ? 'xs' : 0}>
+        <Text size="sm" fw={500}>
+          {title}
+        </Text>
+        {actionHref && actionLabel && (
+          <Anchor component={Link} href={actionHref} size="sm" style={{ whiteSpace: 'nowrap' }}>
+            {actionLabel}
+          </Anchor>
+        )}
+      </Group>
+      {description && (
+        <Text size="sm" c="dimmed">
+          {description}
+        </Text>
+      )}
+      {items && items.length > 0 && (
+        <Stack gap={4}>
+          {items.map(({ id, label, href }) => (
+            <Anchor key={id} component={Link} href={href} size="sm">
+              {label}
+            </Anchor>
+          ))}
+        </Stack>
+      )}
+    </Paper>
   );
 }
 
@@ -88,7 +144,6 @@ function NeedsAttentionSection({ attention }: { attention: IAdminDashboardAttent
       <Title order={4} mb="sm">
         Needs attention
       </Title>
-
       {!hasItems ? (
         <Text size="sm" c="dimmed">
           Everything looks good.
@@ -96,57 +151,48 @@ function NeedsAttentionSection({ attention }: { attention: IAdminDashboardAttent
       ) : (
         <Stack gap="xs">
           {festivalsWithoutEditions.length > 0 && (
-            <Paper withBorder p="md" radius="md">
-              <Text size="sm" fw={500} mb="xs">
-                Festivals without editions ({festivalsWithoutEditions.length})
-              </Text>
-              <Stack gap={4}>
-                {festivalsWithoutEditions.map(({ id, title }) => (
-                  <Anchor
-                    key={id}
-                    component={Link}
-                    href={`/admin/festivals/${id}/editions/new`}
-                    size="sm"
-                  >
-                    {title} → Add edition
-                  </Anchor>
-                ))}
-              </Stack>
-            </Paper>
+            <AttentionCard
+              title={`Festivals without editions (${festivalsWithoutEditions.length})`}
+              items={festivalsWithoutEditions.map((f) => ({
+                id: f.id,
+                label: `${f.title} → Add edition`,
+                href: `/admin/festivals/${f.id}/editions/new`,
+              }))}
+            />
           )}
-
           {tbaEditionsCount > 0 && (
-            <Paper withBorder p="md" radius="md">
-              <Text size="sm" fw={500} mb="xs">
-                Editions with TBA date ({tbaEditionsCount})
-              </Text>
-              <Text size="sm" c="dimmed">
-                These editions have no confirmed date yet. Update them when dates are known.
-              </Text>
-            </Paper>
+            <AttentionCard
+              title={`Editions with TBA date (${tbaEditionsCount})`}
+              description="These editions have no confirmed date yet. Update them when dates are known."
+              actionHref="/admin/festivals"
+              actionLabel="Review editions"
+            />
           )}
-
           {villagesWithoutDescription.length > 0 && (
-            <Paper withBorder p="md" radius="md">
-              <Text size="sm" fw={500} mb="xs">
-                Villages without description ({villagesWithoutDescription.length})
-              </Text>
-              <Stack gap={4}>
-                {villagesWithoutDescription.map(({ id, name }) => (
-                  <Anchor
-                    key={id}
-                    component={Link}
-                    href={`/admin/villages/${id}/edit`}
-                    size="sm"
-                  >
-                    {name} → Edit
-                  </Anchor>
-                ))}
-              </Stack>
-            </Paper>
+            <AttentionCard
+              title={`Villages without description (${villagesWithoutDescription.length})`}
+              items={villagesWithoutDescription.map((v) => ({
+                id: v.id,
+                label: `${v.name} → Edit`,
+                href: `/admin/villages/${v.id}/edit`,
+              }))}
+            />
           )}
         </Stack>
       )}
+    </div>
+  );
+}
+
+function AnalyticsSection() {
+  return (
+    <div>
+      <Title order={4} mb="xs">
+        Analytics
+      </Title>
+      <Text size="sm" c="dimmed">
+        Coming soon.
+      </Text>
     </div>
   );
 }
@@ -171,15 +217,7 @@ export function AdminDashboard({ stats, attention }: IAdminDashboardProps) {
       <ContentSection stats={stats} />
       <QuickActionsSection />
       <NeedsAttentionSection attention={attention} />
-
-      <div>
-        <Title order={4} mb="xs">
-          Analytics
-        </Title>
-        <Text size="sm" c="dimmed">
-          Coming soon.
-        </Text>
-      </div>
+      <AnalyticsSection />
     </Stack>
   );
 }

@@ -11,7 +11,7 @@ import type { IVillage } from '@/entities/village';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export interface IHomeStrings {
+interface IHomeStrings {
   eyebrow: string;
   title: string;
   description: string;
@@ -25,7 +25,7 @@ export interface IHomeStrings {
   villageEmpty: string;
 }
 
-export interface IHomeContentProps {
+interface IHomeContentProps {
   strings: IHomeStrings;
   locale: string;
   festivals: IFestival[] | undefined;
