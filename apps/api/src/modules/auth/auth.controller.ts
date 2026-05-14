@@ -47,7 +47,7 @@ export class AuthController {
     res.cookie(AUTH_COOKIE, token, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: 'strict',
+      sameSite: isProduction ? 'none' : 'strict',
       path: '/',
       maxAge: COOKIE_MAX_AGE_MS,
     });
@@ -66,7 +66,7 @@ export class AuthController {
     res.clearCookie(AUTH_COOKIE, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: 'strict',
+      sameSite: isProduction ? 'none' : 'strict',
       path: '/',
     });
 
