@@ -12,8 +12,10 @@
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\" --ignore-path .gitignore",
     "db:generate": "prisma generate --schema=database/prisma/schema.prisma",
     "db:migrate": "prisma migrate dev --schema=database/prisma/schema.prisma",
+    "db:migrate:deploy": "prisma migrate deploy --schema=database/prisma/schema.prisma",
     "db:studio": "prisma studio --schema=database/prisma/schema.prisma",
-    "db:seed": "tsx database/prisma/seed/index.ts"
+    "db:seed": "tsx database/prisma/seed/index.ts",
+    "db:bootstrap-admin": "tsx database/prisma/seed/bootstrap-admin.ts"
   },
   "prisma": {
     "seed": "tsx database/prisma/seed/index.ts"
