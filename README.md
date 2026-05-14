@@ -131,9 +131,29 @@ pnpm dev
 | Command | Description |
 |---|---|
 | `pnpm db:generate` | Regenerate Prisma client after schema changes |
-| `pnpm db:migrate` | Apply new migrations |
-| `pnpm db:seed` | Re-seed the database with sample data |
+| `pnpm db:migrate` | Apply new migrations (dev only) |
+| `pnpm db:seed` | Re-seed with sample data — **dev only, wipes all tables** |
 | `pnpm db:studio` | Open Prisma Studio (database GUI) |
+
+---
+
+## Deployment
+
+Target: [Render](https://render.com) — two Web Services (API, Web) + Render PostgreSQL.
+
+### Production first-deploy sequence
+
+```bash
+# 1. Apply migrations (runs automatically in API start command)
+pnpm db:migrate:deploy
+
+# 2. Create admin user — run once via Render Shell
+ADMIN_EMAIL=admin@yourdomain.com ADMIN_PASSWORD=StrongPassword123! pnpm db:bootstrap-admin
+```
+
+`db:bootstrap-admin` is idempotent: if the user already exists it exits cleanly without touching any data.
+
+> **Never run `pnpm db:seed` in production.** It deletes all content (villages, festivals, editions, media, users) before inserting dev sample data.
 
 ---
 
